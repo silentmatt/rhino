@@ -75,6 +75,8 @@ public class NativeObject extends IdScriptableObject
     {
         addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_getPrototypeOf,
                 "getPrototypeOf", 1);
+        addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_keys,
+                "keys", 1);
         super.fillConstructorProperties(ctor);
     }
 
@@ -265,16 +267,31 @@ public class NativeObject extends IdScriptableObject
               return Undefined.instance;
 
           case ConstructorId_getPrototypeOf:
-              if (args.length < 1)
-                  return Undefined.instance;
+              {
+                if (args.length < 1)
+                    return Undefined.instance;
 
-              Object arg = args[0];
+                Object arg = args[0];
 
-              if ( !(arg instanceof Scriptable) )
-                  throw ScriptRuntime.typeError1("msg.getprototypeof.not.object", ScriptRuntime.toString(arg));
+                if ( !(arg instanceof Scriptable) )
+                    throw ScriptRuntime.typeError1("msg.getprototypeof.not.object", ScriptRuntime.toString(arg));
 
-              Scriptable obj = (Scriptable) arg;
-              return obj.getPrototype();
+                Scriptable obj = (Scriptable) arg;
+                return obj.getPrototype();
+              }
+          case ConstructorId_keys:
+              {
+                if (args.length < 1)
+                    return Undefined.instance;
+
+                Object arg = args[0];
+
+                if ( !(arg instanceof Scriptable) )
+                    throw ScriptRuntime.typeError1("msg.getprototypeof.not.object", ScriptRuntime.toString(arg));
+
+                Scriptable obj = (Scriptable) arg;
+                return cx.newArray(scope, obj.getIds());
+              }
 
           default:
             throw new IllegalArgumentException(String.valueOf(id));
@@ -324,6 +341,7 @@ public class NativeObject extends IdScriptableObject
 
     private static final int
         ConstructorId_getPrototypeOf = -1,
+        ConstructorId_keys = -2,
 
         Id_constructor           = 1,
         Id_toString              = 2,
