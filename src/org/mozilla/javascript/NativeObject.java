@@ -274,7 +274,7 @@ public class NativeObject extends IdScriptableObject
                 Object arg = args[0];
 
                 if ( !(arg instanceof Scriptable) )
-                    throw ScriptRuntime.typeError1("msg.getprototypeof.not.object", ScriptRuntime.toString(arg));
+                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.toString(arg));
 
                 Scriptable obj = (Scriptable) arg;
                 return obj.getPrototype();
@@ -287,7 +287,7 @@ public class NativeObject extends IdScriptableObject
                 Object arg = args[0];
 
                 if ( !(arg instanceof Scriptable) )
-                    throw ScriptRuntime.typeError1("msg.getprototypeof.not.object", ScriptRuntime.toString(arg));
+                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.toString(arg));
 
                 Scriptable obj = (Scriptable) arg;
                 return cx.newArray(scope, obj.getIds());
