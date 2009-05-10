@@ -12,13 +12,13 @@ public class ObjectGetOwnPropertyNamesTest extends TestCase {
     object.defineProperty("a", new NativeArray(0), ScriptableObject.EMPTY);
     object.defineProperty("b", new NativeArray(0), ScriptableObject.DONTENUM);
 
-    Object result = eval("Object.keys(obj)", "obj", object);
+    Object result = eval("Object.getOwnPropertyNames(obj)", "obj", object);
 
-    NativeArray keys = (NativeArray) result;
+    NativeArray names = (NativeArray) result;
 
-    assertEquals(2, keys.getLength());
-    assertEquals("a", keys.get(0, keys));
-    assertEquals("b", keys.get(1, keys));
+    assertEquals(2, names.getLength());
+    assertEquals("a", names.get(0, names));
+    assertEquals("b", names.get(1, names));
   }
 
   private Object eval(String source, String id, Scriptable object) {
