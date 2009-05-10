@@ -1,5 +1,5 @@
 /*
- * Tests for the Object.keys(obj) method
+ * Tests for the Object.getOwnPropertyNames(obj) method
  */
 package org.mozilla.javascript.tests.es5;
 import junit.framework.TestCase;
