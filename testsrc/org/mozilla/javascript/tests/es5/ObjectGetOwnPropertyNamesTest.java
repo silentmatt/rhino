@@ -1,7 +1,7 @@
 /*
  * Tests for the Object.keys(obj) method
  */
-package org.mozilla.javascript.tests;
+package org.mozilla.javascript.tests.es5;
 import junit.framework.TestCase;
 import org.mozilla.javascript.*;
 
