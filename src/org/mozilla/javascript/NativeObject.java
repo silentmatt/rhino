@@ -77,7 +77,9 @@ public class NativeObject extends IdScriptableObject
                 "getPrototypeOf", 1);
         addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_keys,
                 "keys", 1);
-        addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_keys,
+        addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_getOwnPropertyNames,
+                "getOwnPropertyNames", 1);
+        addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_getOwnPropertyDescriptor,
                 "getOwnPropertyDescriptor", 2);
         super.fillConstructorProperties(ctor);
     }
@@ -294,6 +296,19 @@ public class NativeObject extends IdScriptableObject
                 Scriptable obj = (Scriptable) arg;
                 return cx.newArray(scope, obj.getIds());
               }
+          case ConstructorId_getOwnPropertyNames:
+              {
+                if (args.length < 1)
+                    return Undefined.instance;
+
+                Object arg = args[0];
+
+                if ( !(arg instanceof ScriptableObject) )
+                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.toString(arg));
+
+                ScriptableObject obj = (ScriptableObject) arg;
+                return cx.newArray(scope, obj.getAllIds());
+              }
           case ConstructorId_getOwnPropertyDescriptor:
               {
                 return Undefined.instance;
@@ -348,6 +363,7 @@ public class NativeObject extends IdScriptableObject
     private static final int
         ConstructorId_getPrototypeOf = -1,
         ConstructorId_keys = -2,
+        ConstructorId_getOwnPropertyNames = -3,
         ConstructorId_getOwnPropertyDescriptor = -4,
 
         Id_constructor           = 1,
