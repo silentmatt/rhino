@@ -311,6 +311,15 @@ public class NativeObject extends IdScriptableObject
               }
           case ConstructorId_getOwnPropertyDescriptor:
               {
+                if (args.length < 2)
+                    return Undefined.instance;
+
+                Object arg = args[0];
+                if ( !(arg instanceof ScriptableObject) )
+                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.toString(arg));
+                ScriptableObject obj = (ScriptableObject) arg;
+                String name = ScriptRuntime.toString(args[1]);
+
                 return Undefined.instance;
               }
 
