@@ -487,7 +487,7 @@ public class NativeArray extends IdScriptableObject
     {
       LinkedHashSet allIds = new LinkedHashSet(Arrays.asList(this.getIds()));
       allIds.addAll(Arrays.asList(super.getAllIds()));
-      return new ArrayList(ids).toArray();
+      return new ArrayList(allIds).toArray();
     }
 
     @Override
