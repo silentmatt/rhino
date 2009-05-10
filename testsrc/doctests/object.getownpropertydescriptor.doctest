@@ -1,0 +1,2 @@
+js> Object.getOwnPropertyDescriptor;
+function getOwnPropertyDescriptor() { [native code for Object.getOwnPropertyDescriptor, arity=2] }
