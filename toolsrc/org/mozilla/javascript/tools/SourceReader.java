@@ -13,7 +13,7 @@ import org.mozilla.javascript.tools.shell.ParsedContentType;
 
 /**
  * @author Attila Szegedi
- * @version $Id: SourceReader.java,v 1.1 2008/10/18 18:57:26 szegedia%freemail.hu Exp $
+ * @version $Id$
  */
 public class SourceReader
 {
@@ -123,4 +123,3 @@ public class SourceReader
         return result;
     }
 }
-
