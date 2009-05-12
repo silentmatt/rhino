@@ -2942,16 +2942,15 @@ switch (op) {
             x = x.parentFrame;
         }
         
-        if (requireContinuationsTopFrame) {
-            while (outermost.parentFrame != null)
-                outermost = outermost.parentFrame;
-    
-            if (!outermost.isContinuationsTopFrame) {
-                throw new IllegalStateException("Cannot capture continuation " +
-                        "from JavaScript code not called directly by " +
-                        "executeScriptWithContinuations or " +
-                        "callFunctionWithContinuations");
-            }
+        while (outermost.parentFrame != null)
+            outermost = outermost.parentFrame;
+
+        if (requireContinuationsTopFrame && !outermost.isContinuationsTopFrame)
+        {
+            throw new IllegalStateException("Cannot capture continuation " +
+                    "from JavaScript code not called directly by " +
+                    "executeScriptWithContinuations or " +
+                    "callFunctionWithContinuations");
         }
         
         c.initImplementation(frame);
