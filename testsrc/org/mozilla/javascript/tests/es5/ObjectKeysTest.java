@@ -4,6 +4,7 @@
 package org.mozilla.javascript.tests.es5;
 import junit.framework.TestCase;
 import org.mozilla.javascript.*;
+import static org.mozilla.javascript.tests.Evaluator.eval;
 
 public class ObjectKeysTest extends TestCase {
 
@@ -22,14 +23,4 @@ public class ObjectKeysTest extends TestCase {
     assertEquals("b", keys.get(1, keys));
   }
 
-  private Object eval(String source, String id, Scriptable object) {
-    Context cx = ContextFactory.getGlobal().enterContext();
-    try {
-      Scriptable scope = cx.initStandardObjects();
-      scope.put(id, scope, object);
-      return cx.evaluateString(scope, source, "source", 1, null);
-    } finally {
-      Context.exit();
-    }
-  }
 }
