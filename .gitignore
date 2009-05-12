@@ -4,4 +4,4 @@ build.local.properties
 downloaded
 .cvsignore
 CVS
-
+.*.swp
