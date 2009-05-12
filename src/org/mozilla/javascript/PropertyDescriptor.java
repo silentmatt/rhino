@@ -9,12 +9,12 @@ public class PropertyDescriptor implements Cloneable {
   private Callable getter = null; 
   private Callable setter = null;
 
-  public PropertyDescriptor enumerable(boolean enumerable) {
+  public PropertyDescriptor enumerable(Boolean enumerable) {
     PropertyDescriptor copy = this.copy();
     copy.enumerable = enumerable;
     return copy;
   }
-  public PropertyDescriptor configurable(boolean configurable) {
+  public PropertyDescriptor configurable(Boolean configurable) {
     PropertyDescriptor copy = this.copy();
     copy.configurable = configurable;
     return copy;
@@ -27,7 +27,7 @@ public class PropertyDescriptor implements Cloneable {
     copy.value = value;
     return copy;
   }
-  public PropertyDescriptor writable(boolean writable) {
+  public PropertyDescriptor writable(Boolean writable) {
     if (this.isAccessorDescriptor()) 
       throw new UnsupportedOperationException("Cannot add writable to an accessor property descriptor");
 
