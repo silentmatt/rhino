@@ -2,12 +2,14 @@
  * Tests for the Object.getOwnPropertyDescriptor(obj, prop) method
  */
 package org.mozilla.javascript.tests.es5;
-import junit.framework.TestCase;
 import org.mozilla.javascript.*;
 import static org.mozilla.javascript.tests.Evaluator.eval;
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
-public class ObjectGetOwnPropertyDescriptorTest extends TestCase {
+public class ObjectGetOwnPropertyDescriptorTest {
 
+  @Test
   public void testContentsOfPropertyDescriptorShouldReflectAttributesOfProperty() {
     NativeObject descriptor;
     NativeObject object = new NativeObject();

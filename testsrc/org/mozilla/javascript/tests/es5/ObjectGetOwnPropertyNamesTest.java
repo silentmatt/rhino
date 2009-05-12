@@ -2,16 +2,18 @@
  * Tests for the Object.getOwnPropertyNames(obj) method
  */
 package org.mozilla.javascript.tests.es5;
-import junit.framework.TestCase;
 import org.mozilla.javascript.*;
 import static org.mozilla.javascript.tests.Evaluator.eval;
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
-public class ObjectGetOwnPropertyNamesTest extends TestCase {
+public class ObjectGetOwnPropertyNamesTest {
 
+  @Test
   public void testShouldReturnAllPropertiesOfArg() {
     NativeObject object = new NativeObject();
-    object.defineProperty("a", new NativeArray(0), ScriptableObject.EMPTY);
-    object.defineProperty("b", new NativeArray(0), ScriptableObject.DONTENUM);
+    object.defineProperty("a", "1", ScriptableObject.EMPTY);
+    object.defineProperty("b", "2", ScriptableObject.DONTENUM);
 
     Object result = eval("Object.getOwnPropertyNames(obj)", "obj", object);
 

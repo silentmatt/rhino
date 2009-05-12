@@ -1,15 +1,20 @@
 package org.mozilla.javascript.tests.es5;
 
-import junit.framework.TestCase;
 import org.mozilla.javascript.*;
 import java.util.Arrays;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 
-public class PropertyDescriptorTest extends TestCase {
+public class PropertyDescriptorTest {
   private final PropertyDescriptor blank = new PropertyDescriptor();
   private final Callable getter = new StubCallable();
   private final Callable setter = new StubCallable();
 
-  public void testShouldInitializeDataDescriptorThroughBuilderMethods() {
+  @Test
+  public void shouldInitializeDataDescriptorThroughBuilderMethods() {
     PropertyDescriptor desc = blank.value("a").enumerable(true).writable(true).configurable(true);
     assertEquals("a", desc.getValue());
     assertEquals(true, desc.isEnumerable());
@@ -17,7 +22,8 @@ public class PropertyDescriptorTest extends TestCase {
     assertEquals(true, desc.isConfigurable());
   }
 
-  public void testShouldInitialiseAccessorDescriptorThroughBuilderMethods() {
+  @Test
+  public void shouldInitialiseAccessorDescriptorThroughBuilderMethods() {
     PropertyDescriptor desc = blank.getter(getter).setter(setter).enumerable(true).configurable(true);
     assertEquals(getter, desc.getGetter());
     assertEquals(setter, desc.getSetter());
@@ -25,41 +31,42 @@ public class PropertyDescriptorTest extends TestCase {
     assertEquals(true, desc.isConfigurable());
   }
 
-  public void testShouldNotAllowGetterOrSetterToBeSetOnceValueOrWritableHaveBeenSet() {
-    for (PropertyDescriptor desc : Arrays.asList(blank.value("a"), blank.writable(true))) {
-      try {
-        desc.getter(getter);
-        fail("Descriptor cannot contain both value/writable and a getter");
-      } catch(UnsupportedOperationException ex) {
-        // this was expected
-      }
-      try {
-        desc.setter(setter);
-        fail("Descriptor cannot contain both value/writable and a setter");
-      } catch(UnsupportedOperationException ex) {
-        // this was expected
-      }
-    }
+  @Test(expected = UnsupportedOperationException.class)
+  public void shouldNotAllowGetterBeSetOnceValueHasBeenSet() {
+    blank.value("a").getter(getter);
+  }
+  @Test(expected = UnsupportedOperationException.class)
+  public void shouldNotAllowGetterToBeSetOnceWritableHasBeenSet() {
+    blank.writable(true).getter(getter);
+  }
+  @Test(expected = UnsupportedOperationException.class)
+  public void shouldNotAllowSetterBeSetOnceValueHasBeenSet() {
+    blank.value("a").setter(setter);
+  }
+  @Test(expected = UnsupportedOperationException.class)
+  public void shouldNotAllowSetterToBeSetOnceWritableHasBeenSet() {
+    blank.writable(true).setter(setter);
   }
 
-  public void testShouldNotAllowValueOrWritableToBeSetOnceGetterOrSetterHaveBeenSet() {
-    for (PropertyDescriptor desc : Arrays.asList(blank.getter(getter), blank.setter(setter))) {
-      try {
-        desc.value("value");
-        fail("Descriptor cannot contain both getter/setter and a value");
-      } catch(UnsupportedOperationException ex) {
-        // this was expected
-      }
-      try {
-        desc.writable(true);
-        fail("Descriptor cannot contain both getter/setter and a writable");
-      } catch(UnsupportedOperationException ex) {
-        // this was expected
-      }
-    }
+  @Test(expected = UnsupportedOperationException.class)
+  public void shouldNotAllowValueToBeSetOnceGetterHasBeenSet() {
+    blank.getter(getter).value("a");
+  }
+  @Test(expected = UnsupportedOperationException.class)
+  public void shouldNotAllowWritableToBeSetOnceGetterHasBeenSet() {
+    blank.getter(getter).writable(true);
+  }
+  @Test(expected = UnsupportedOperationException.class)
+  public void shouldNotAllowValueToBeSetOnceSetterHasBeenSet() {
+    blank.setter(setter).value("a");
+  }
+  @Test(expected = UnsupportedOperationException.class)
+  public void shouldNotAllowWritableToBeSetOnceSetterHasBeenSet() {
+    blank.setter(setter).writable(true);
   }
 
-  public void testShouldBeDataDescriptorOnlyWhenValueOrWritableIsSet() {
+  @Test
+  public void shouldBeDataDescriptorOnlyWhenValueOrWritableIsSet() {
     assertFalse(blank.isDataDescriptor());
     assertFalse(blank.enumerable(true).isDataDescriptor());
     assertFalse(blank.configurable(true).isDataDescriptor());
@@ -69,7 +76,8 @@ public class PropertyDescriptorTest extends TestCase {
     assertTrue(blank.writable(true).isDataDescriptor());
   }
 
-  public void testShouldBeAccessorDescriptorOnlyWhenGetterOrSetterIsSet() {
+  @Test
+  public void shouldBeAccessorDescriptorOnlyWhenGetterOrSetterIsSet() {
     assertFalse(blank.isAccessorDescriptor());
     assertFalse(blank.enumerable(true).isAccessorDescriptor());
     assertFalse(blank.configurable(true).isAccessorDescriptor());
@@ -79,7 +87,8 @@ public class PropertyDescriptorTest extends TestCase {
     assertTrue(blank.setter(setter).isAccessorDescriptor());
   }
 
-  public void testShouldBeGenericDescriptorOnlyWhenNotDataOrAccessorDescriptor() {
+  @Test
+  public void shouldBeGenericDescriptorOnlyWhenNotDataOrAccessorDescriptor() {
     assertTrue(blank.isGenericDescriptor());
     assertTrue(blank.enumerable(true).isGenericDescriptor());
     assertTrue(blank.configurable(true).isGenericDescriptor());
@@ -89,7 +98,8 @@ public class PropertyDescriptorTest extends TestCase {
     assertFalse(blank.setter(setter).isGenericDescriptor());
   }
 
-  public void testFromPropertyDescriptorShouldCreateValidObjectForDataDescriptor() {
+  @Test
+  public void fromPropertyDescriptorShouldCreateValidObjectForDataDescriptor() {
     NativeObject expected = new NativeObject();
     expected.defineProperty("value", Integer.valueOf(1), ScriptableObject.EMPTY);
     expected.defineProperty("writable", Boolean.TRUE, ScriptableObject.EMPTY);

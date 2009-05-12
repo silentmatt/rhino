@@ -2,13 +2,15 @@
  * Tests for the Object.keys(obj) method
  */
 package org.mozilla.javascript.tests.es5;
-import junit.framework.TestCase;
 import org.mozilla.javascript.*;
 import static org.mozilla.javascript.tests.Evaluator.eval;
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
-public class ObjectKeysTest extends TestCase {
+public class ObjectKeysTest {
 
-  public void testShouldReturnOnlyEnumerablePropertiesOfArg() {
+  @Test
+  public void shouldReturnOnlyEnumerablePropertiesOfArg() {
     NativeObject object = new NativeObject();
     object.defineProperty("a", new NativeArray(0), ScriptableObject.EMPTY);
     object.defineProperty("b", new NativeArray(0), ScriptableObject.EMPTY);
