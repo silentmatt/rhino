@@ -307,6 +307,13 @@
       <ant antfile="testsrc/build.xml" target="compile" />
   </target>
 
+  <target name="benchmark" depends="jar">
+    <property name="jarfile" location="${dist.dir}/${rhino.jar}"/>
+    <java jar="${jarfile}" dir="testsrc/benchmark" fork="true">
+      <arg line="run.js"/>
+    </java>
+  </target>
+
   <target name="help" depends="properties">
 <echo>The following targets are available with this build file:
 

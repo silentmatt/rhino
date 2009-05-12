@@ -45,7 +45,7 @@ import org.w3c.dom.*;
 import org.mozilla.javascript.tools.shell.*;
 
 /**
- * @version $Id$
+ * @version $Id: JsDriver.java,v 1.9 2008/12/05 20:35:44 hannes%helma.at Exp $
  */
 public class JsDriver {
     private JsDriver() {

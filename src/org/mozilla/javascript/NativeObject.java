@@ -71,6 +71,20 @@ public class NativeObject extends IdScriptableObject
     }
 
     @Override
+    protected void fillConstructorProperties(IdFunctionObject ctor)
+    {
+        addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_getPrototypeOf,
+                "getPrototypeOf", 1);
+        addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_keys,
+                "keys", 1);
+        addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_getOwnPropertyNames,
+                "getOwnPropertyNames", 1);
+        addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_getOwnPropertyDescriptor,
+                "getOwnPropertyDescriptor", 2);
+        super.fillConstructorProperties(ctor);
+    }
+
+    @Override
     protected void initPrototypeId(int id)
     {
         String s;
@@ -256,6 +270,60 @@ public class NativeObject extends IdScriptableObject
               }
               return Undefined.instance;
 
+          case ConstructorId_getPrototypeOf:
+              {
+                if (args.length < 1)
+                    return Undefined.instance;
+
+                Object arg = args[0];
+
+                if ( !(arg instanceof Scriptable) )
+                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.toString(arg));
+
+                Scriptable obj = (Scriptable) arg;
+                return obj.getPrototype();
+              }
+          case ConstructorId_keys:
+              {
+                if (args.length < 1)
+                    return Undefined.instance;
+
+                Object arg = args[0];
+
+                if ( !(arg instanceof Scriptable) )
+                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.toString(arg));
+
+                Scriptable obj = (Scriptable) arg;
+                return cx.newArray(scope, obj.getIds());
+              }
+          case ConstructorId_getOwnPropertyNames:
+              {
+                if (args.length < 1)
+                    return Undefined.instance;
+
+                Object arg = args[0];
+
+                if ( !(arg instanceof ScriptableObject) )
+                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.toString(arg));
+
+                ScriptableObject obj = (ScriptableObject) arg;
+                return cx.newArray(scope, obj.getAllIds());
+              }
+          case ConstructorId_getOwnPropertyDescriptor:
+              {
+                if (args.length < 2)
+                    return Undefined.instance;
+
+                Object arg = args[0];
+                if ( !(arg instanceof ScriptableObject) )
+                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.toString(arg));
+                ScriptableObject obj = (ScriptableObject) arg;
+                String name = ScriptRuntime.toString(args[1]);
+
+                PropertyDescriptor desc = obj.getOwnPropertyDescriptor(name);
+                return desc == null ? Undefined.instance : desc.fromPropertyDescriptor();
+              }
+
           default:
             throw new IllegalArgumentException(String.valueOf(id));
         }
@@ -303,6 +371,11 @@ public class NativeObject extends IdScriptableObject
     }
 
     private static final int
+        ConstructorId_getPrototypeOf = -1,
+        ConstructorId_keys = -2,
+        ConstructorId_getOwnPropertyNames = -3,
+        ConstructorId_getOwnPropertyDescriptor = -4,
+
         Id_constructor           = 1,
         Id_toString              = 2,
         Id_toLocaleString        = 3,

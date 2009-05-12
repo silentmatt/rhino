@@ -51,7 +51,7 @@ import org.mozilla.javascript.tools.shell.ShellContextFactory;
  * Executes the tests in the js/tests directory, much like jsDriver.pl does.
  * Excludes tests found in the js/tests/rhino-n.tests file.
  * @author Attila Szegedi
- * @version $Id$
+ * @version $Id: StandardTests.java,v 1.12 2008/12/08 22:56:21 nboyd%atg.com Exp $
  */
 public class StandardTests extends TestSuite
 {

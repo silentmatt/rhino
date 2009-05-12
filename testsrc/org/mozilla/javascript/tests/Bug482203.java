@@ -48,3 +48,4 @@ public class Bug482203 extends TestCase {
         }
     }
 }
+
