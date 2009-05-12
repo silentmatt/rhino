@@ -111,6 +111,7 @@ public class Parser
 
     protected int nestingOfFunction;
     private LabeledStatement currentLabel;
+    private boolean inDestructuringAssignment;
 
     // The following are per function variables and should be saved/restored
     // during function parsing.  See PerFunctionVariables class below.
@@ -577,10 +578,15 @@ public class Parser
         return root;
     }
 
-    private Block parseFunctionBody()
+    private AstNode parseFunctionBody()
         throws IOException
     {
-        mustMatchToken(Token.LC, "msg.no.brace.body");
+        if (!matchToken(Token.LC)) {
+            if (compilerEnv.getLanguageVersion() < Context.VERSION_1_8) {
+                reportError("msg.no.brace.body");
+            }
+            return parseFunctionBodyExpr();
+        }
         ++nestingOfFunction;
         int pos = ts.tokenBeg;
         Block pn = new Block(pos);  // starts at LC position
@@ -626,25 +632,22 @@ public class Parser
         }
         // Would prefer not to call createDestructuringAssignment until codegen,
         // but the symbol definitions have to happen now, before body is parsed.
-        Node destructuring = null;
+        Map<String, Node> destructuring = null;
         do {
             int tt = peekToken();
             if (tt == Token.LB || tt == Token.LC) {
-                AstNode expr = primaryExpr();
+                AstNode expr = destructuringPrimaryExpr();
                 markDestructuring(expr);
                 fnNode.addParam(expr);
                 // Destructuring assignment for parameters: add a dummy
                 // parameter name, and add a statement to the body to initialize
                 // variables from the destructuring assignment
                 if (destructuring == null) {
-                    destructuring = new Node(Token.COMMA);
+                    destructuring = new HashMap<String, Node>();
                 }
                 String pname = currentScriptOrFn.getNextTempName();
                 defineSymbol(Token.LP, pname, false);
-                Node nameNode = createName(pname);
-                Node assign = createDestructuringAssignment(Token.VAR,
-                                                            expr, nameNode);
-                destructuring.addChildToBack(assign);
+                destructuring.put(pname, expr);
             } else {
                 if (mustMatchToken(Token.NAME, "msg.no.parm")) {
                     fnNode.addParam(createNameNode());
@@ -656,12 +659,36 @@ public class Parser
         } while (matchToken(Token.COMMA));
 
         if (destructuring != null) {
-            fnNode.putProp(Node.DESTRUCTURING_PARAMS, destructuring);
+            Node destructuringNode = new Node(Token.COMMA);
+            // Add assignment helper for each destructuring parameter
+            for (Map.Entry<String, Node> param: destructuring.entrySet()) {
+                Node assign = createDestructuringAssignment(Token.VAR,
+                        param.getValue(), createName(param.getKey()));
+                destructuringNode.addChildToBack(assign);
+
+            }
+            fnNode.putProp(Node.DESTRUCTURING_PARAMS, destructuringNode);
         }
 
         if (mustMatchToken(Token.RP, "msg.no.paren.after.parms")) {
             fnNode.setRp(ts.tokenBeg - fnNode.getPosition());
         }
+    }
+
+
+    private AstNode parseFunctionBodyExpr()
+        throws IOException
+    {
+        ++nestingOfFunction;
+        int lineno = ts.getLineno();
+        ReturnStatement n = new ReturnStatement(lineno);
+        n.putProp(Node.EXPRESSION_CLOSURE_PROP, Boolean.TRUE);
+        try {
+            n.setReturnValue(assignExpr());
+        } finally {
+            --nestingOfFunction;
+        }
+        return n;
     }
 
     private FunctionNode function(int type)
@@ -1756,7 +1783,7 @@ public class Parser
 
             if (tt == Token.LB || tt == Token.LC) {
                 // Destructuring assignment, e.g., var [a,b] = ...
-                destructuring = primaryExpr();
+                destructuring = destructuringPrimaryExpr();
                 end = getNodeEnd(destructuring);
                 if (!(destructuring instanceof DestructuringForm))
                     reportError("msg.bad.assign.left", kidPos, end - kidPos);
@@ -2583,6 +2610,17 @@ public class Parser
         return ref;
     }
 
+    private AstNode destructuringPrimaryExpr()
+        throws IOException, ParserException
+    {
+        try {
+            inDestructuringAssignment = true;
+            return primaryExpr();
+        } finally {
+            inDestructuringAssignment = false;
+        }
+    }
+
     private AstNode primaryExpr()
         throws IOException
     {
@@ -2821,7 +2859,7 @@ public class Parser
               case Token.LB:
               case Token.LC:
                   // handle destructuring assignment
-                  iter = primaryExpr();
+                  iter = destructuringPrimaryExpr();
                   markDestructuring(iter);
                   break;
               case Token.NAME:
@@ -2890,7 +2928,7 @@ public class Parser
                                                      "get".equals(prop)));
                   } else {
                       AstNode pname = stringProp != null ? stringProp : name;
-                      elems.add(plainProperty(pname));
+                      elems.add(plainProperty(pname, tt));
                   }
                   break;
 
@@ -2900,7 +2938,7 @@ public class Parser
                   AstNode nl = new NumberLiteral(ts.tokenBeg,
                                                  ts.getString(),
                                                  ts.getNumber());
-                  elems.add(plainProperty(nl));
+                  elems.add(plainProperty(nl, tt));
                   break;
 
               case Token.RC:
@@ -2928,9 +2966,23 @@ public class Parser
         return pn;
     }
 
-    private ObjectProperty plainProperty(AstNode property)
+    private ObjectProperty plainProperty(AstNode property, int ptt)
         throws IOException
     {
+        // Support, e.g., |var {x, y} = o| as destructuring shorthand
+        // for |var {x: x, y: y} = o|, as implemented in spidermonkey JS 1.8.
+        int tt = peekToken();
+        if ((tt == Token.COMMA || tt == Token.RC) && ptt == Token.NAME
+                && compilerEnv.getLanguageVersion() >= Context.VERSION_1_8) {
+            if (!inDestructuringAssignment) {
+                reportError("msg.bad.object.init");
+            }
+            AstNode nn = new Name(property.getPosition(), property.getString());
+            ObjectProperty pn = new ObjectProperty();
+            pn.putProp(Node.DESTRUCTURING_SHORTHAND, Boolean.TRUE);
+            pn.setLeftAndRight(property, nn);
+            return pn;
+        }
         mustMatchToken(Token.COLON, "msg.no.colon.prop");
         ObjectProperty pn = new ObjectProperty();
         pn.setOperatorPosition(ts.tokenBeg);
