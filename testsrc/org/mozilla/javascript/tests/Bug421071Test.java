@@ -115,4 +115,3 @@ public class Bug421071Test extends TestCase {
         }
     }
 }
-

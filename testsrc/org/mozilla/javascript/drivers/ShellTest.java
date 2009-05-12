@@ -51,7 +51,7 @@ import org.mozilla.javascript.tools.shell.Main;
 import org.mozilla.javascript.tools.shell.ShellContextFactory;
 
 /**
- * @version $Id: ShellTest.java,v 1.11 2008/12/05 20:35:44 hannes%helma.at Exp $
+ * @version $Id$
  */
 class ShellTest {
     static final FileFilter DIRECTORY_FILTER = new FileFilter() {
