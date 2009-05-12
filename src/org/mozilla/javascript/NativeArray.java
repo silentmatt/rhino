@@ -42,7 +42,7 @@ package org.mozilla.javascript;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
-import java.util.ArrayList;
+import java.util.Set;
 
 /**
  * This class implements the Array native object.
@@ -487,9 +487,9 @@ public class NativeArray extends IdScriptableObject
     @Override
     public Object[] getAllIds()
     {
-      LinkedHashSet allIds = new LinkedHashSet(Arrays.asList(this.getIds()));
+      Set allIds = new LinkedHashSet(Arrays.asList(this.getIds()));
       allIds.addAll(Arrays.asList(super.getAllIds()));
-      return new ArrayList(allIds).toArray();
+      return allIds.toArray();
     }
 
     @Override
