@@ -202,6 +202,14 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
             }
         }
 
+        PropertyDescriptor getPropertyDescriptor() {
+          return new PropertyDescriptor().
+            value(value).
+            writable((attributes & READONLY) == 0).
+            enumerable((attributes & DONTENUM) == 0).
+            configurable((attributes & PERMANENT) == 0);
+        }
+
     }
 
     private static final class GetterSlot extends Slot
@@ -214,6 +222,14 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
         GetterSlot(String name, int indexOrHash, int attributes)
         {
             super(name, indexOrHash, attributes);
+        }
+
+        PropertyDescriptor getPropertyDescriptor() {
+          return super.getPropertyDescriptor().
+            value(null).
+            writable(null).
+            getter((Callable) getter).
+            setter((Callable) setter);
         }
     }
 
@@ -2521,6 +2537,11 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
                 prev = lastAdded;
             }
         }
+    }
+
+    protected PropertyDescriptor getOwnPropertyDescriptor(String name) {
+      Slot slot = getSlot(name, 0, SLOT_QUERY);
+      return (slot == null) ? null : slot.getPropertyDescriptor();
     }
 
     // Methods and classes to implement java.util.Map interface

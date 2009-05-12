@@ -320,7 +320,8 @@ public class NativeObject extends IdScriptableObject
                 ScriptableObject obj = (ScriptableObject) arg;
                 String name = ScriptRuntime.toString(args[1]);
 
-                return Undefined.instance;
+                PropertyDescriptor desc = obj.getOwnPropertyDescriptor(name);
+                return desc == null ? Undefined.instance : desc.fromPropertyDescriptor();
               }
 
           default:
