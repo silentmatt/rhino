@@ -6,8 +6,8 @@ public class PropertyDescriptor implements Cloneable {
   private Object value = null;
   private Boolean writable = null;
   // TODO these two values might be mutable, is it still okay to clone?
-  private Callable getter = null; 
-  private Callable setter = null;
+  private Function getter = null;
+  private Function setter = null;
 
   public PropertyDescriptor enumerable(Boolean enumerable) {
     PropertyDescriptor copy = this.copy();
@@ -35,7 +35,7 @@ public class PropertyDescriptor implements Cloneable {
     copy.writable = writable;
     return copy;
   }
-  public PropertyDescriptor getter(Callable getter) {
+  public PropertyDescriptor getter(Function getter) {
     if (this.isDataDescriptor()) 
       throw new UnsupportedOperationException("Cannot add getter to a data property descriptor");
 
@@ -43,7 +43,7 @@ public class PropertyDescriptor implements Cloneable {
     copy.getter = getter;
     return copy;
   }
-  public PropertyDescriptor setter(Callable setter) {
+  public PropertyDescriptor setter(Function setter) {
     if (this.isDataDescriptor()) 
       throw new UnsupportedOperationException("Cannot add setter to a data property descriptor");
 
@@ -52,22 +52,22 @@ public class PropertyDescriptor implements Cloneable {
     return copy;
   }
 
-  public boolean isEnumerable() {
+  public Boolean isEnumerable() {
     return enumerable;
   }
-  public boolean isConfigurable() {
+  public Boolean isConfigurable() {
     return configurable;
   }
   public Object getValue() {
     return this.value;
   }
-  public boolean isWritable() {
+  public Boolean isWritable() {
     return writable;
   }
-  public Callable getGetter() {
+  public Function getGetter() {
     return getter;
   }
-  public Callable getSetter() {
+  public Function getSetter() {
     return setter;
   }
 
@@ -93,6 +93,76 @@ public class PropertyDescriptor implements Cloneable {
     if (enumerable != null) obj.defineProperty("enumerable", enumerable, ScriptableObject.EMPTY);
     if (configurable != null) obj.defineProperty("configurable", configurable, ScriptableObject.EMPTY);
     return obj;
+  }
+
+  public static PropertyDescriptor toPropertyDescriptor(Scriptable attributes) {
+    PropertyDescriptor desc = new PropertyDescriptor();
+    if (attributes.has("enumerable", attributes)) {
+      Object value = attributes.get("enumerable", attributes);
+      desc = desc.enumerable(ScriptRuntime.toBoolean(value));
+    }
+    if (attributes.has("configurable", attributes)) {
+      Object value = attributes.get("configurable", attributes);
+      desc = desc.configurable(ScriptRuntime.toBoolean(value));
+    }
+    if (attributes.has("value", attributes)) {
+      Object value = attributes.get("value", attributes);
+      desc = desc.value(value);
+    }
+    if (attributes.has("writable", attributes)) {
+      Object value = attributes.get("writable", attributes);
+      desc = desc.writable(ScriptRuntime.toBoolean(value));
+    }
+    if (attributes.has("get", attributes)) {
+      Object value = attributes.get("get", attributes);
+      if ( !(value instanceof Function) ) {
+        throw ScriptRuntime.typeError1("getter not callable", ScriptRuntime.toString(value));
+      }
+      desc = desc.getter((Function) value);
+    }
+    if (attributes.has("set", attributes)) {
+      Object value = attributes.get("set", attributes);
+      if ( !(value instanceof Function) ) {
+        throw ScriptRuntime.typeError1("setter not callable", ScriptRuntime.toString(value));
+      }
+      desc = desc.setter((Function) value);
+    }
+
+    return desc;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (obj == null || !(obj instanceof PropertyDescriptor)) return false;
+    PropertyDescriptor that = (PropertyDescriptor) obj;
+    return
+      this.enumerable == that.enumerable &&
+      this.writable == that.writable &&
+      this.configurable == that.configurable &&
+      areEqual(this.value, that.value) &&
+      areEqual(this.getter, that.getter) &&
+      areEqual(this.setter, that.setter);
+  }
+
+  @Override
+  public int hashCode() {
+    return hash(enumerable, 0) * hash(configurable, 1) * hash(writable, 2) *
+      hash(value, 3) * hash(getter, 4) * hash(setter, 5);
+  }
+
+  @Override
+  public String toString() {
+    return String.format(
+        "PropertyDescriptor[enumerable: %s, configurable: %s, writable: %s, value: %s, getter: %s, setter: %s]",
+       enumerable, configurable, writable, value, getter, setter);
+  }
+
+  private static boolean areEqual(Object a, Object b) {
+    return ((a==null) && (b==null)) || ((a!=null) && a.equals(b));
+  }
+  private static int hash(Object o, int shift) {
+    return (o == null ? 1 : o.hashCode()) << shift;
   }
 
   private PropertyDescriptor copy() {

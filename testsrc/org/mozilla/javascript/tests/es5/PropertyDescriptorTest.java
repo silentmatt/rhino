@@ -1,17 +1,16 @@
 package org.mozilla.javascript.tests.es5;
 
 import org.mozilla.javascript.*;
+import org.mozilla.javascript.tests.*;
 import java.util.Arrays;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
 import org.junit.Test;
+import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.*;
 
 public class PropertyDescriptorTest {
   private final PropertyDescriptor blank = new PropertyDescriptor();
-  private final Callable getter = new StubCallable();
-  private final Callable setter = new StubCallable();
+  private final Function getter = new StubFunction();
+  private final Function setter = new StubFunction();
 
   @Test
   public void shouldInitializeDataDescriptorThroughBuilderMethods() {
@@ -112,9 +111,33 @@ public class PropertyDescriptorTest {
     assertEquals(expected.entrySet(), actual.entrySet());
   }
 
-  private static class StubCallable implements Callable {
-    public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
-      return null;
-    }
+  @Test 
+  public void propertyDescriptorsWithTheSameSettingsShouldBeEqual() {
+    PropertyDescriptor a = new PropertyDescriptor(), b = new PropertyDescriptor();
+    assertEquals(a, a);
+    assertEquals(a, b);
+    assertEquals(a.value("hi"), b.value("hi"));
+    assertThat(a.value("hi"), is(not(a.value("lo"))));
+  }
+
+  @Test
+  public void toPropertyDescriptorShouldCreateEmptyDescriptorFromEmptyObjectArgument() {
+    PropertyDescriptor expected = new PropertyDescriptor();
+    PropertyDescriptor actual = PropertyDescriptor.toPropertyDescriptor(new NativeObject());
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void toPropertyDescriptorShouldCreateDescriptorWithAttributesProvidedByArgument() {
+    Scriptable attribs = new NativeObject();
+    attribs.put("enumerable", attribs, true);
+    attribs.put("configurable", attribs, true);
+    attribs.put("value", attribs, 1);
+    attribs.put("writable", attribs, true);
+
+    PropertyDescriptor expected = new PropertyDescriptor().
+      enumerable(true).configurable(true).value(1).writable(true);
+    PropertyDescriptor actual = PropertyDescriptor.toPropertyDescriptor(attribs);
+    assertEquals(expected, actual);
   }
 }

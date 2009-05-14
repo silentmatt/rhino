@@ -81,6 +81,8 @@ public class NativeObject extends IdScriptableObject
                 "getOwnPropertyNames", 1);
         addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_getOwnPropertyDescriptor,
                 "getOwnPropertyDescriptor", 2);
+        addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_defineProperty,
+                "defineProperty", 3);
         super.fillConstructorProperties(ctor);
     }
 
@@ -323,6 +325,30 @@ public class NativeObject extends IdScriptableObject
                 PropertyDescriptor desc = obj.getOwnPropertyDescriptor(name);
                 return desc == null ? Undefined.instance : desc.fromPropertyDescriptor();
               }
+          case ConstructorId_defineProperty:
+              {
+                if (args.length < 3)
+                    return Undefined.instance;
+
+                Object arg0 = args[0];
+                if ( !(arg0 instanceof ScriptableObject) )
+                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.toString(arg0));
+
+                ScriptableObject obj = (ScriptableObject) arg0;
+                String name = ScriptRuntime.toString(args[1]);
+
+                Object arg2 = args[2];
+                if ( !(arg2 instanceof Scriptable) )
+                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.toString(arg2));
+
+                Scriptable attributes = (Scriptable) arg2;
+
+                PropertyDescriptor desc = PropertyDescriptor.toPropertyDescriptor(attributes);
+
+                obj.defineProperty(name, desc);
+
+                return obj;
+              }
 
           default:
             throw new IllegalArgumentException(String.valueOf(id));
@@ -375,6 +401,7 @@ public class NativeObject extends IdScriptableObject
         ConstructorId_keys = -2,
         ConstructorId_getOwnPropertyNames = -3,
         ConstructorId_getOwnPropertyDescriptor = -4,
+        ConstructorId_defineProperty = -5,
 
         Id_constructor           = 1,
         Id_toString              = 2,

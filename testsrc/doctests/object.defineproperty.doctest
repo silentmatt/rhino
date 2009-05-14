@@ -1,0 +1,10 @@
+js> Object.defineProperty
+function defineProperty() { [native code for Object.defineProperty, arity=3] }
+js> Object.defineProperty() === undefined
+true
+js> Object.defineProperty({}) === undefined
+true
+js> Object.defineProperty({}, 'p') === undefined
+true
+js> Object.defineProperty({}, 'p', {value:1}).p
+1

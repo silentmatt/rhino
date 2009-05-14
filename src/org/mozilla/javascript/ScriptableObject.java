@@ -228,8 +228,8 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
           return super.getPropertyDescriptor().
             value(null).
             writable(null).
-            getter((Callable) getter).
-            setter((Callable) setter);
+            getter((Function) getter).
+            setter((Function) setter);
         }
     }
 
@@ -1470,6 +1470,25 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
         gslot.setAttributes(attributes);
         gslot.getter = getterBox;
         gslot.setter = setterBox;
+    }
+
+    public void defineProperty(String name, PropertyDescriptor desc) {
+      int attributes = ScriptableObject.EMPTY;
+      if (Boolean.FALSE.equals(desc.isEnumerable()))   attributes |= DONTENUM;
+      if (Boolean.FALSE.equals(desc.isConfigurable())) attributes |= PERMANENT;
+
+      if (desc.isDataDescriptor()) {
+        if (Boolean.FALSE.equals(desc.isWritable()))   attributes |= READONLY;
+        defineProperty(name, desc.getValue(), attributes);
+      } else if (desc.isAccessorDescriptor()) {
+        Callable getter = desc.getGetter();
+        Callable setter = desc.getSetter();
+        if (getter != null) setGetterOrSetter(name, 0, getter, false);
+        if (setter != null) setGetterOrSetter(name, 0, setter, true);
+        setAttributes(name, attributes);
+      } else {
+        defineProperty(name, Undefined.instance, attributes);
+      }
     }
 
     /**
