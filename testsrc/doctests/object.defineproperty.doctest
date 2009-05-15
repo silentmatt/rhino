@@ -8,3 +8,16 @@ js> Object.defineProperty({}, 'p') === undefined
 true
 js> Object.defineProperty({}, 'p', {value:1}).p
 1
+js> var obj = {}
+js> Object.defineProperty(obj, 'a', {
+  >   value: 1,
+  >   enumerable: false,
+  >   writable: false,
+  >   configurable: false
+  > })  
+[object Object]
+js> for (var p in obj) print(p); // check it has no enumerable properties
+js> obj.a = 2; obj.a; // check that the property is not writable
+1
+js> delete obj.a; obj.a // check that the property is not deletable
+1

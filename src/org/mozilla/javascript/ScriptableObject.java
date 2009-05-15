@@ -1472,7 +1472,7 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
         gslot.setter = setterBox;
     }
 
-    public void defineProperty(String name, PropertyDescriptor desc) {
+    public void defineOwnProperty(String name, PropertyDescriptor desc) {
       int attributes = ScriptableObject.EMPTY;
       if (Boolean.FALSE.equals(desc.isEnumerable()))   attributes |= DONTENUM;
       if (Boolean.FALSE.equals(desc.isConfigurable())) attributes |= PERMANENT;

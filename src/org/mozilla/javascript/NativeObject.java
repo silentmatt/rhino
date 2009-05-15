@@ -345,7 +345,7 @@ public class NativeObject extends IdScriptableObject
 
                 PropertyDescriptor desc = PropertyDescriptor.toPropertyDescriptor(attributes);
 
-                obj.defineProperty(name, desc);
+                obj.defineOwnProperty(name, desc);
 
                 return obj;
               }
