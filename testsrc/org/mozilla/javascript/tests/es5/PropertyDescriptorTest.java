@@ -65,6 +65,31 @@ public class PropertyDescriptorTest {
   }
 
   @Test
+  public void defaultAttributesShouldBeUndefinedAndFalse() {
+    assertEquals(Undefined.instance, blank.getValueOrDefault());
+    assertEquals(Undefined.instance, blank.getGetterOrDefault());
+    assertEquals(Undefined.instance, blank.getSetterOrDefault());
+    assertEquals(false, blank.getEnumerableOrDefault());
+    assertEquals(false, blank.getConfigurableOrDefault());
+    assertEquals(false, blank.getWritableOrDefault());
+  }
+
+  @Test
+  public void propertyDescriptorsWithTheSameSettingsShouldBeEqual() {
+    PropertyDescriptor a = new PropertyDescriptor(), b = new PropertyDescriptor();
+    assertEquals(a, a);
+    assertEquals(a, b);
+    assertEquals(a.value("hi"), b.value("hi"));
+    assertThat(a.value("hi"), is(not(a.value("lo"))));
+  }
+
+  @Test
+  public void fromPropertyDescriptorShouldSetDefaultValuesForAnAccessorPropertyDescriptor() {
+    NativeObject obj = blank.getter(getter).fromPropertyDescriptor();
+    assertEquals(Undefined.instance, obj.get("set", obj));
+  }
+
+  @Test
   public void shouldBeDataDescriptorOnlyWhenValueOrWritableIsSet() {
     assertFalse(blank.isDataDescriptor());
     assertFalse(blank.enumerable(true).isDataDescriptor());
@@ -124,21 +149,6 @@ public class PropertyDescriptorTest {
 
     NativeObject obj = blank.writable(true).fromPropertyDescriptor();
     assertEquals(Undefined.instance, obj.get("value", obj));
-  }
-
-  @Test
-  public void fromPropertyDescriptorShouldSetDefaultValuesForAnAccessorPropertyDescriptor() {
-    NativeObject obj = blank.getter(getter).fromPropertyDescriptor();
-    assertEquals(Undefined.instance, obj.get("set", obj));
-  }
-
-  @Test 
-  public void propertyDescriptorsWithTheSameSettingsShouldBeEqual() {
-    PropertyDescriptor a = new PropertyDescriptor(), b = new PropertyDescriptor();
-    assertEquals(a, a);
-    assertEquals(a, b);
-    assertEquals(a.value("hi"), b.value("hi"));
-    assertThat(a.value("hi"), is(not(a.value("lo"))));
   }
 
   @Test
