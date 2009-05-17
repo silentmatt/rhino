@@ -59,16 +59,16 @@ public class PropertyDescriptor implements Cloneable {
     return copy;
   }
 
-  public Boolean isEnumerable() {
+  public Boolean getEnumerable() {
     return enumerable;
   }
-  public Boolean isConfigurable() {
+  public Boolean getConfigurable() {
     return configurable;
   }
   public Object getValue() {
     return this.value;
   }
-  public Boolean isWritable() {
+  public Boolean getWritable() {
     return writable;
   }
   public Function getGetter() {

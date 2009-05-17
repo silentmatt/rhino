@@ -16,9 +16,9 @@ public class PropertyDescriptorTest {
   public void shouldInitializeDataDescriptorThroughBuilderMethods() {
     PropertyDescriptor desc = blank.value("a").enumerable(true).writable(true).configurable(true);
     assertEquals("a", desc.getValue());
-    assertEquals(true, desc.isEnumerable());
-    assertEquals(true, desc.isWritable());
-    assertEquals(true, desc.isConfigurable());
+    assertEquals(true, desc.getEnumerable());
+    assertEquals(true, desc.getWritable());
+    assertEquals(true, desc.getConfigurable());
   }
 
   @Test
@@ -26,8 +26,8 @@ public class PropertyDescriptorTest {
     PropertyDescriptor desc = blank.getter(getter).setter(setter).enumerable(true).configurable(true);
     assertEquals(getter, desc.getGetter());
     assertEquals(setter, desc.getSetter());
-    assertEquals(true, desc.isEnumerable());
-    assertEquals(true, desc.isConfigurable());
+    assertEquals(true, desc.getEnumerable());
+    assertEquals(true, desc.getConfigurable());
   }
 
   @Test(expected = UnsupportedOperationException.class)

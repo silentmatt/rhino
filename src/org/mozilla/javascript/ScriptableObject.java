@@ -1474,11 +1474,11 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
 
     public void defineOwnProperty(String name, PropertyDescriptor desc) {
       int attributes = ScriptableObject.EMPTY;
-      if (Boolean.FALSE.equals(desc.isEnumerable()))   attributes |= DONTENUM;
-      if (Boolean.FALSE.equals(desc.isConfigurable())) attributes |= PERMANENT;
+      if (Boolean.FALSE.equals(desc.getEnumerable()))   attributes |= DONTENUM;
+      if (Boolean.FALSE.equals(desc.getConfigurable())) attributes |= PERMANENT;
 
       if (desc.isDataDescriptor()) {
-        if (Boolean.FALSE.equals(desc.isWritable()))   attributes |= READONLY;
+        if (Boolean.FALSE.equals(desc.getWritable()))   attributes |= READONLY;
         defineProperty(name, desc.getValue(), attributes);
       } else if (desc.isAccessorDescriptor()) {
         Callable getter = desc.getGetter();
