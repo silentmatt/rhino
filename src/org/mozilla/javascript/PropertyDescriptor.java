@@ -81,20 +81,27 @@ public class PropertyDescriptor implements Cloneable {
     return !isDataDescriptor() && !isAccessorDescriptor();
   }
 
+  /*
+   * Implementation of [[FromPropertyDescriptor]] in 8.10.4 of the spec.
+   */
   public NativeObject fromPropertyDescriptor() {
+    final Object undef = Undefined.instance;
     NativeObject obj = new NativeObject();
     if (isDataDescriptor()) {
-      if (value != null) obj.defineProperty("value", value, ScriptableObject.EMPTY);
-      if (writable != null) obj.defineProperty("writable", writable, ScriptableObject.EMPTY);
+      obj.defineProperty("value",    (value == null ? undef : value),       ScriptableObject.EMPTY);
+      obj.defineProperty("writable", (writable == null ? false : writable), ScriptableObject.EMPTY);
     } else if (isAccessorDescriptor()) {
-      if (getter != null) obj.defineProperty("get", getter, ScriptableObject.EMPTY);
-      if (setter != null) obj.defineProperty("set", setter, ScriptableObject.EMPTY);
+      obj.defineProperty("get", (getter == null ? undef : getter), ScriptableObject.EMPTY);
+      obj.defineProperty("set", (setter == null ? undef : setter), ScriptableObject.EMPTY);
     }
-    if (enumerable != null) obj.defineProperty("enumerable", enumerable, ScriptableObject.EMPTY);
-    if (configurable != null) obj.defineProperty("configurable", configurable, ScriptableObject.EMPTY);
+    obj.defineProperty("enumerable",   (enumerable == null ? false : enumerable),   ScriptableObject.EMPTY);
+    obj.defineProperty("configurable", (configurable == null ? false : enumerable), ScriptableObject.EMPTY);
     return obj;
   }
 
+  /*
+   * Implementation of [[ToPropertyDescriptor]] in 8.10.5 of the spec.
+   */
   public static PropertyDescriptor toPropertyDescriptor(Scriptable attributes) {
     PropertyDescriptor desc = new PropertyDescriptor();
     if (attributes.has("enumerable", attributes)) {
@@ -172,5 +179,4 @@ public class PropertyDescriptor implements Cloneable {
       throw new RuntimeException("PropertyDescriptor does not support cloning", ex);
     }
   }
-
 }

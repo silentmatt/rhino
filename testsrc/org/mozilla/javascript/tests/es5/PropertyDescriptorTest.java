@@ -105,10 +105,31 @@ public class PropertyDescriptorTest {
     expected.defineProperty("enumerable", Boolean.TRUE, ScriptableObject.EMPTY);
     expected.defineProperty("configurable", Boolean.TRUE, ScriptableObject.EMPTY);
 
-    PropertyDescriptor desc = new PropertyDescriptor().value(1).writable(true).enumerable(true).configurable(true);
+    PropertyDescriptor desc = blank.value(1).writable(true).enumerable(true).configurable(true);
     NativeObject actual = desc.fromPropertyDescriptor();
 
     assertEquals(expected.entrySet(), actual.entrySet());
+  }
+
+  @Test
+  public void fromPropertyDescriptorShouldSetDefaultValuesForAGenericPropertyDescriptor() {
+    NativeObject obj = blank.fromPropertyDescriptor();
+    assertEquals(false, obj.get("enumerable"));
+    assertEquals(false, obj.get("configurable"));
+  }
+
+  @Test
+  public void fromPropertyDescriptorShouldSetDefaultValuesForADataPropertyDescriptor() {
+    assertEquals(false, blank.value(1).fromPropertyDescriptor().get("writable"));
+
+    NativeObject obj = blank.writable(true).fromPropertyDescriptor();
+    assertEquals(Undefined.instance, obj.get("value", obj));
+  }
+
+  @Test
+  public void fromPropertyDescriptorShouldSetDefaultValuesForAnAccessorPropertyDescriptor() {
+    NativeObject obj = blank.getter(getter).fromPropertyDescriptor();
+    assertEquals(Undefined.instance, obj.get("set", obj));
   }
 
   @Test 
