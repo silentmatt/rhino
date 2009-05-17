@@ -22,45 +22,45 @@ public class ScriptableObjectTest {
   }
 
   @Test
-  public void defineOwnPropertyWithEmptyPropertyDescriptorShouldBeWritableAndEnumerableAndConfigurable() {
+  public void defineOwnPropertyWithEmptyPropertyDescriptorShouldHaveDefaultAttributeValues() {
     obj.defineOwnProperty("p", new PropertyDescriptor());
 
-    assertNull(obj.get("p"));
-    assertTrue(isEnumerable(obj, "p"));
-    assertTrue(isConfigurable(obj, "p"));
-    assertTrue(isWritable(obj, "p"));
+    assertEquals(Undefined.instance, obj.get("p", obj));
+    assertFalse(isEnumerable(obj, "p"));
+    assertFalse(isConfigurable(obj, "p"));
+    assertFalse(isWritable(obj, "p"));
   }
 
   @Test
   public void defineOwnPropertyWithAccessorPropertyDescriptorShouldAssignAttributesBasedOnTheDescriptor() {
 
     PropertyDescriptor desc = new PropertyDescriptor().
-      enumerable(false).
-      configurable(false).
+      enumerable(true).
+      configurable(true).
       getter(new StubFunction(3)).
       setter(new StubFunction());
 
     obj.defineOwnProperty("p", desc);
 
     assertEquals(3, obj.get("p"));
-    assertFalse(isEnumerable(obj, "p"));
-    assertFalse(isConfigurable(obj, "p"));
+    assertTrue(isEnumerable(obj, "p"));
+    assertTrue(isConfigurable(obj, "p"));
   }
 
   @Test
   public void defineOwnPropertyWithDataPropertyDescriptorShouldAssignAttributesBasedOnTheDescriptor() {
     PropertyDescriptor desc = new PropertyDescriptor().
       value(3).
-      enumerable(false).
-      configurable(false).
-      writable(false);
+      enumerable(true).
+      configurable(true).
+      writable(true);
 
     obj.defineOwnProperty("p", desc);
 
     assertEquals(3, obj.get("p"));
-    assertFalse(isEnumerable(obj, "p"));
-    assertFalse(isConfigurable(obj, "p"));
-    assertFalse(isWritable(obj, "p"));
+    assertTrue(isEnumerable(obj, "p"));
+    assertTrue(isConfigurable(obj, "p"));
+    assertTrue(isWritable(obj, "p"));
   }
 
   private boolean isEnumerable(ScriptableObject obj, String name) {

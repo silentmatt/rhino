@@ -1,6 +1,13 @@
 package org.mozilla.javascript;
 
 public class PropertyDescriptor implements Cloneable {
+  public static final boolean DEFAULT_ENUMERABLE = false;
+  public static final boolean DEFAULT_CONFIGURABLE = false;
+  public static final boolean DEFAULT_WRITABLE = false;
+  public static final Object DEFAULT_VALUE = Undefined.instance;
+  public static final Object DEFAULT_GET = Undefined.instance;
+  public static final Object DEFAULT_SET = Undefined.instance;
+
   protected Boolean enumerable = null;
   protected Boolean configurable = null;
   private Object value = null;
@@ -85,17 +92,16 @@ public class PropertyDescriptor implements Cloneable {
    * Implementation of [[FromPropertyDescriptor]] in 8.10.4 of the spec.
    */
   public NativeObject fromPropertyDescriptor() {
-    final Object undef = Undefined.instance;
     NativeObject obj = new NativeObject();
     if (isDataDescriptor()) {
-      obj.defineProperty("value",    (value == null ? undef : value),       ScriptableObject.EMPTY);
-      obj.defineProperty("writable", (writable == null ? false : writable), ScriptableObject.EMPTY);
+      obj.defineProperty("value",    (value == null ? DEFAULT_VALUE : value),       ScriptableObject.EMPTY);
+      obj.defineProperty("writable", (writable == null ? DEFAULT_WRITABLE: writable), ScriptableObject.EMPTY);
     } else if (isAccessorDescriptor()) {
-      obj.defineProperty("get", (getter == null ? undef : getter), ScriptableObject.EMPTY);
-      obj.defineProperty("set", (setter == null ? undef : setter), ScriptableObject.EMPTY);
+      obj.defineProperty("get", (getter == null ? DEFAULT_GET : getter), ScriptableObject.EMPTY);
+      obj.defineProperty("set", (setter == null ? DEFAULT_SET : setter), ScriptableObject.EMPTY);
     }
-    obj.defineProperty("enumerable",   (enumerable == null ? false : enumerable),   ScriptableObject.EMPTY);
-    obj.defineProperty("configurable", (configurable == null ? false : enumerable), ScriptableObject.EMPTY);
+    obj.defineProperty("enumerable",   (enumerable == null ? DEFAULT_ENUMERABLE : enumerable),   ScriptableObject.EMPTY);
+    obj.defineProperty("configurable", (configurable == null ? DEFAULT_CONFIGURABLE : enumerable), ScriptableObject.EMPTY);
     return obj;
   }
 
