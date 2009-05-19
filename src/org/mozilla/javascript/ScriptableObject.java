@@ -154,6 +154,7 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
     private static final int SLOT_REMOVE = 3;
     private static final int SLOT_MODIFY_GETTER_SETTER = 4;
     private static final int SLOT_MODIFY_CONST = 5;
+    private static final int SLOT_CONVERT_ACCESSOR_TO_DATA = 6;
 
     private static class Slot implements Serializable
     {
@@ -570,13 +571,40 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
     public void setGetterOrSetter(String name, int index,
                                   Callable getterOrSetter, boolean isSetter)
     {
+        setGetterOrSetter(name, index, getterOrSetter, isSetter, true);
+    }
+
+    /**
+     * Sets the setter for the named property. 
+     * Does not check whether this is allowed, as it is assumed these checks have been done higher up.
+     */
+    private void setSetter(String name, Callable setter) {
+      setGetterOrSetter(name, 0, setter, true, true);
+    }
+
+    /**
+     * Sets the getter for the named property. 
+     * Does not check whether this is allowed, as it is assumed these checks have been done higher up.
+     */
+    private void setGetter(String name, Callable getter) {
+      setGetterOrSetter(name, 0, getter, false, true);
+    }
+    
+    private void setGetterOrSetter(String name, int index, Callable getterOrSetter, boolean isSetter, boolean force)
+    {
         if (name != null && index != 0)
             throw new IllegalArgumentException(name);
 
-        checkNotSealed(name, index);
+        if (!force) {
+          checkNotSealed(name, index);
+        }
+
         GetterSlot gslot = (GetterSlot)getSlot(name, index,
                                                SLOT_MODIFY_GETTER_SETTER);
-        gslot.checkNotReadonly();
+        
+        if (!force) {
+          gslot.checkNotReadonly();
+        }
         if (isSetter) {
             gslot.setter = getterOrSetter;
         } else {
@@ -584,7 +612,7 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
         }
         gslot.value = Undefined.instance;
     }
-    
+
     /**
      * Get the getter or setter for a given property. Used by __lookupGetter__
      * and __lookupSetter__.
@@ -1473,20 +1501,75 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
     }
 
     public void defineOwnProperty(String name, PropertyDescriptor desc) {
+      if (this.has(name, this)) {
+        redefineOwnProperty(name, desc);
+      } else {
+        defineOwnNewProperty(name, desc);
+      }
+    }
+
+    private void redefineOwnProperty(String name, PropertyDescriptor desc) {
+      PropertyDescriptor current = getOwnPropertyDescriptor(name);
+      int attributes = getAttributes(name);
+      if (Boolean.FALSE.equals(desc.getEnumerable()))   attributes |= DONTENUM;
+      if (Boolean.FALSE.equals(desc.getConfigurable())) attributes |= PERMANENT;
+      if (Boolean.FALSE.equals(desc.getWritable()))     attributes |= READONLY;
+
+      if (current.getConfigurableOrDefault() == false) {
+        if (desc.getConfigurableOrDefault() == true) 
+          throw ScriptRuntime.typeError1("msg.change.configurable.false.to.true", name);
+        if (current.getEnumerableOrDefault() != desc.getEnumerableOrDefault())
+          throw ScriptRuntime.typeError1("msg.change.enumerable.with.configurable.false", name);
+
+        if (desc.isGenericDescriptor()) {
+          // no further validation required
+        } else if (desc.isDataDescriptor() && current.isDataDescriptor()) {
+          if (current.getWritableOrDefault() == false) {
+            if (desc.getWritableOrDefault() == true)
+              throw ScriptRuntime.typeError1("msg.change.writable.false.to.true.with.configurable.false", name);
+
+            Object newValue = desc.getValue();
+            if (newValue != null && ! ScriptRuntime.shallowEq(current.getValueOrDefault(), newValue) ) 
+              throw ScriptRuntime.typeError1("msg.change.value.with.writable.false", name);
+          }
+        } else if (desc.isAccessorDescriptor() && current.isAccessorDescriptor()) {
+          Object newSetter = desc.getSetter();
+          if (newSetter != null && ! ScriptRuntime.shallowEq(current.getSetterOrDefault(), newSetter))
+            throw ScriptRuntime.typeError1("msg.change.setter.with.configurable.false", name);
+
+          Object newGetter = desc.getGetter();
+          if (newGetter != null && ! ScriptRuntime.shallowEq(current.getGetterOrDefault(), newGetter))
+            throw ScriptRuntime.typeError1("msg.change.getter.with.configurable.false", name);
+        } else {
+          throw ScriptRuntime.typeError1("msg.change.descriptor.type.with.configurable.false", name);
+        }
+      } else {
+        if (current.isDataDescriptor() && desc.isAccessorDescriptor()) {
+          setGetter(name, desc.getGetter());
+          setSetter(name, desc.getSetter());
+        } else if (current.isAccessorDescriptor() && desc.isDataDescriptor()) {
+          Slot slot = getSlot(name, 0, SLOT_CONVERT_ACCESSOR_TO_DATA);
+//          if (3<4) throw new RuntimeException(slot.getClass().getName());
+          slot.value = desc.getValueOrDefault();
+        }
+      }
+
+      setAttributes(name, attributes);
+    }
+
+    private void defineOwnNewProperty(String name, PropertyDescriptor desc) {
       int attributes = ScriptableObject.EMPTY;
       if (desc.getEnumerableOrDefault() == false)   attributes |= DONTENUM;
       if (desc.getConfigurableOrDefault() == false) attributes |= PERMANENT;
 
       if (desc.isAccessorDescriptor()) {
-        Callable getter = desc.getGetter();
-        Callable setter = desc.getSetter();
-        if (getter != null) setGetterOrSetter(name, 0, getter, false);
-        if (setter != null) setGetterOrSetter(name, 0, setter, true);
-        setAttributes(name, attributes);
+        setGetter(name, desc.getGetter());
+        setSetter(name, desc.getSetter());
       } else {
         if (desc.getWritableOrDefault() == false)   attributes |= READONLY;
-        defineProperty(name, desc.getValueOrDefault(), attributes);
+        put(name, this, desc.getValueOrDefault());
       }
+      setAttributes(name, attributes);
     }
 
     /**
@@ -2201,6 +2284,10 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
                 !(slot instanceof GetterSlot))
                 break lastAccessCheck;
 
+            if (accessType == SLOT_CONVERT_ACCESSOR_TO_DATA &&
+                (slot instanceof GetterSlot))
+                break lastAccessCheck;
+
             return slot;
         }
 
@@ -2219,7 +2306,8 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
         if (accessType == SLOT_QUERY ||
             accessType == SLOT_MODIFY ||
             accessType == SLOT_MODIFY_CONST ||
-            accessType == SLOT_MODIFY_GETTER_SETTER)
+            accessType == SLOT_MODIFY_GETTER_SETTER ||
+            accessType == SLOT_CONVERT_ACCESSOR_TO_DATA)
         {
             // Check the hashtable without using synchronization
 
@@ -2262,6 +2350,9 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
                 } else if (accessType == SLOT_MODIFY_CONST) {
                     if (slot != null)
                         return slot;
+                } else if (accessType == SLOT_CONVERT_ACCESSOR_TO_DATA) {
+                    if ( !(slot instanceof GetterSlot) )
+                        return slot;
                 }
             }
 
@@ -2301,37 +2392,41 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
                         // implementation it is harmless with the only
                         // complication is the need to replace the added slot
                         // if we need GetterSlot and the old one is not.
-                        if (accessType == SLOT_MODIFY_GETTER_SETTER &&
-                            !(slot instanceof GetterSlot))
-                        {
-                            GetterSlot newSlot = new GetterSlot(name,
-                                    indexOrHash, slot.getAttributes());
-                            newSlot.value = slot.value;
-                            newSlot.next = slot.next;
-                            // add new slot to linked list
-                            if (lastAdded != null)
-                                lastAdded.orderedNext = newSlot;
-                            if (firstAdded == null)
-                                firstAdded = newSlot;
-                            lastAdded = newSlot;
-                            // add new slot to hash table
-                            if (prev == slot) {
-                                slotsLocalRef[insertPos] = newSlot;
-                            } else {
-                                prev.next = newSlot;
-                            }
-                            // other housekeeping
-                            slot.wasDeleted = true;
-                            slot.value = null;
-                            slot.name = null;
-                            if (slot == lastAccess) {
-                                lastAccess = REMOVED;
-                            }
-                            slot = newSlot;
+
+                        Slot newSlot;
+
+                        if (accessType == SLOT_MODIFY_GETTER_SETTER && !(slot instanceof GetterSlot)) {
+                            newSlot = new GetterSlot(name, indexOrHash, slot.getAttributes());
+                        } else if (accessType == SLOT_CONVERT_ACCESSOR_TO_DATA && (slot instanceof GetterSlot)) {
+                            newSlot = new Slot(name, indexOrHash, slot.getAttributes());
                         } else if (accessType == SLOT_MODIFY_CONST) {
-                            return null;
+                          return null;
+                        } else {
+                          return slot;
                         }
-                        return slot;
+
+                        newSlot.value = slot.value;
+                        newSlot.next = slot.next;
+                        // add new slot to linked list
+                        if (lastAdded != null)
+                            lastAdded.orderedNext = newSlot;
+                        if (firstAdded == null)
+                            firstAdded = newSlot;
+                        lastAdded = newSlot;
+                        // add new slot to hash table
+                        if (prev == slot) {
+                            slotsLocalRef[insertPos] = newSlot;
+                        } else {
+                            prev.next = newSlot;
+                        }
+                        // other housekeeping
+                        slot.wasDeleted = true;
+                        slot.value = null;
+                        slot.name = null;
+                        if (slot == lastAccess) {
+                            lastAccess = REMOVED;
+                        }
+                        return newSlot;
                     }
 
                     // Check if the table is not too full before inserting.
@@ -2343,7 +2438,6 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
                                 indexOrHash);
                     }
                 }
-
                 Slot newSlot = (accessType == SLOT_MODIFY_GETTER_SETTER
                                 ? new GetterSlot(name, indexOrHash, 0)
                                 : new Slot(name, indexOrHash, 0));
