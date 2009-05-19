@@ -22,7 +22,7 @@ public class ScriptableObjectTest {
   public void tearDown() {
     Context.exit();
   }
-/*
+
   @Test
   public void defineOwnPropertyWithEmptyPropertyDescriptorShouldHaveDefaultAttributeValues() {
     obj.defineOwnProperty("p", new PropertyDescriptor());
@@ -143,7 +143,7 @@ public class ScriptableObjectTest {
     obj.defineOwnProperty("p", blank.enumerable(false));
     assertEquals(false, obj.getOwnPropertyDescriptor("p").getEnumerable());
   }
-*/
+
   @Test
   public void defineOwnPropertyShouldAllowChangingBetweenDataAndAccessorPropertyWhenConfigurableIsTrue() {
     obj.defineOwnProperty("p", blank.value(3).configurable(true));

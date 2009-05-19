@@ -1549,7 +1549,6 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
           setSetter(name, desc.getSetter());
         } else if (current.isAccessorDescriptor() && desc.isDataDescriptor()) {
           Slot slot = getSlot(name, 0, SLOT_CONVERT_ACCESSOR_TO_DATA);
-//          if (3<4) throw new RuntimeException(slot.getClass().getName());
           slot.value = desc.getValueOrDefault();
         }
       }
