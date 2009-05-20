@@ -83,6 +83,10 @@ public class NativeObject extends IdScriptableObject
                 "getOwnPropertyDescriptor", 2);
         addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_defineProperty,
                 "defineProperty", 3);
+        addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_isExtensible,
+                "isExtensible", 1);
+        addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_preventExtensions,
+                "preventExtensions", 1);
         super.fillConstructorProperties(ctor);
     }
 
@@ -349,6 +353,34 @@ public class NativeObject extends IdScriptableObject
 
                 return obj;
               }
+          case ConstructorId_isExtensible:
+              {
+                if (args.length < 1)
+                    return Undefined.instance;
+
+                Object arg0 = args[0];
+                if ( !(arg0 instanceof ScriptableObject) )
+                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.toString(arg0));
+
+                ScriptableObject obj = (ScriptableObject) arg0;
+
+                return obj.isExtensible();
+              }
+          case ConstructorId_preventExtensions:
+              {
+                if (args.length < 1)
+                    return Undefined.instance;
+
+                Object arg0 = args[0];
+                if ( !(arg0 instanceof ScriptableObject) )
+                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.toString(arg0));
+
+                ScriptableObject obj = (ScriptableObject) arg0;
+
+                obj.preventExtensions();
+
+                return obj;
+              }
 
           default:
             throw new IllegalArgumentException(String.valueOf(id));
@@ -402,6 +434,8 @@ public class NativeObject extends IdScriptableObject
         ConstructorId_getOwnPropertyNames = -3,
         ConstructorId_getOwnPropertyDescriptor = -4,
         ConstructorId_defineProperty = -5,
+        ConstructorId_isExtensible = -6,
+        ConstructorId_preventExtensions = -7,
 
         Id_constructor           = 1,
         Id_toString              = 2,

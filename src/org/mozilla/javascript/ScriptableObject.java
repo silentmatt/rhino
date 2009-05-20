@@ -156,6 +156,8 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
     private static final int SLOT_MODIFY_CONST = 5;
     private static final int SLOT_CONVERT_ACCESSOR_TO_DATA = 6;
 
+    private boolean isExtensible = true;
+
     private static class Slot implements Serializable
     {
         private static final long serialVersionUID = -6090581677123995491L;
@@ -1676,6 +1678,14 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
             }
             obj = parent;
         }
+    }
+
+    public boolean isExtensible() {
+      return isExtensible;
+    }
+
+    public void preventExtensions() {
+      isExtensible = false;
     }
 
     /**
