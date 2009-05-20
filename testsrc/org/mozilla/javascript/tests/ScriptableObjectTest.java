@@ -24,13 +24,13 @@ public class ScriptableObjectTest {
   }
 
   @Test
-  public void defineOwnPropertyWithEmptyPropertyDescriptorShouldHaveDefaultAttributeValues() {
+  public void defineOwnPropertyOnNewPropertyWithEmptyPropertyDescriptorShouldHaveDefaultAttributeValues() {
     obj.defineOwnProperty("p", new PropertyDescriptor());
 
     assertEquals(Undefined.instance, obj.get("p", obj));
-    assertFalse(isEnumerable(obj, "p"));
-    assertFalse(isConfigurable(obj, "p"));
-    assertFalse(isWritable(obj, "p"));
+    assertEquals(false, isEnumerable(obj, "p"));
+    assertEquals(false, isConfigurable(obj, "p"));
+    assertEquals(false, isWritable(obj, "p"));
   }
 
   @Test
@@ -129,14 +129,14 @@ public class ScriptableObjectTest {
     obj.defineOwnProperty("p", blank.value(3).configurable(false));
     obj.defineOwnProperty("p", blank.getter(new StubFunction()));
   }
-
+/*
   @Test
   public void defineOwnPropertyShouldAllowChangingWritableFromTrueToFalseWhenConfigurableIsFalse() {
     obj.defineOwnProperty("p", blank.writable(true).configurable(false));
     obj.defineOwnProperty("p", blank.writable(false));
     assertEquals(false, obj.getOwnPropertyDescriptor("p").getWritable());
   }
-
+*/
   @Test
   public void defineOwnPropertyShouldAllowSettingEnumerableToTheSameValueWhenConfigurableIsFalse() {
     obj.defineOwnProperty("p", blank.enumerable(false).configurable(false));
@@ -153,6 +153,21 @@ public class ScriptableObjectTest {
     obj.defineOwnProperty("q", blank.getter(new StubFunction(3)).configurable(true));
     obj.defineOwnProperty("q", blank.value(4));
     assertEquals(4, obj.get("q"));
+  }
+
+  @Test
+  public void defineOwnPropertyShouldAllowChangingAttributesToTrueWhenConfigurableIsTrue() {
+    obj.defineOwnProperty("p", blank.enumerable(false).writable(false).configurable(true));
+
+    PropertyDescriptor des = obj.getOwnPropertyDescriptor("p");
+    assertEquals(false, des.getEnumerable());
+    assertEquals(false, des.getWritable());
+
+    obj.defineOwnProperty("p", blank.enumerable(true ).writable(true ));
+
+    PropertyDescriptor desc = obj.getOwnPropertyDescriptor("p");
+    assertEquals(true, desc.getEnumerable());
+    assertEquals(true, desc.getWritable());
   }
 
   private boolean isEnumerable(ScriptableObject obj, String name) {

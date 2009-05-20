@@ -1508,12 +1508,22 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
       }
     }
 
+    private int applyDescriptorToAttributeBitset(int attributes, PropertyDescriptor desc) {
+      Boolean enumerable = desc.getEnumerable();
+      if (enumerable != null) attributes = (enumerable ? attributes & ~DONTENUM : attributes | DONTENUM);
+
+      Boolean writable = desc.getWritable();
+      if (writable != null) attributes = (writable ? attributes & ~READONLY : attributes | READONLY);
+
+      Boolean configurable = desc.getConfigurable();
+      if (configurable != null) attributes = (configurable ? attributes & ~PERMANENT : attributes | PERMANENT);
+
+      return attributes;
+    }
+
     private void redefineOwnProperty(String name, PropertyDescriptor desc) {
       PropertyDescriptor current = getOwnPropertyDescriptor(name);
-      int attributes = getAttributes(name);
-      if (Boolean.FALSE.equals(desc.getEnumerable()))   attributes |= DONTENUM;
-      if (Boolean.FALSE.equals(desc.getConfigurable())) attributes |= PERMANENT;
-      if (Boolean.FALSE.equals(desc.getWritable()))     attributes |= READONLY;
+      int attributes = applyDescriptorToAttributeBitset(getAttributes(name), desc);
 
       if (current.getConfigurableOrDefault() == false) {
         if (desc.getConfigurableOrDefault() == true) 
@@ -1557,15 +1567,12 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
     }
 
     private void defineOwnNewProperty(String name, PropertyDescriptor desc) {
-      int attributes = ScriptableObject.EMPTY;
-      if (desc.getEnumerableOrDefault() == false)   attributes |= DONTENUM;
-      if (desc.getConfigurableOrDefault() == false) attributes |= PERMANENT;
+      int attributes = applyDescriptorToAttributeBitset(DONTENUM|READONLY|PERMANENT, desc);
 
       if (desc.isAccessorDescriptor()) {
         setGetter(name, desc.getGetter());
         setSetter(name, desc.getSetter());
       } else {
-        if (desc.getWritableOrDefault() == false)   attributes |= READONLY;
         put(name, this, desc.getValueOrDefault());
       }
       setAttributes(name, attributes);
