@@ -573,7 +573,7 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
     public void setGetterOrSetter(String name, int index,
                                   Callable getterOrSetter, boolean isSetter)
     {
-        setGetterOrSetter(name, index, getterOrSetter, isSetter, true);
+        setGetterOrSetter(name, index, getterOrSetter, isSetter, false);
     }
 
     /**
@@ -599,6 +599,10 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
 
         if (!force) {
           checkNotSealed(name, index);
+        }
+
+        if (!force) {
+          checkExtensible();
         }
 
         GetterSlot gslot = (GetterSlot)getSlot(name, index,
@@ -1736,6 +1740,11 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
         throw Context.reportRuntimeError1("msg.modify.sealed", str);
     }
 
+    private void checkExtensible() {
+      if (!isExtensible())
+        throw ScriptRuntime.typeError("msg.not.extensible");
+    }
+
     /**
      * Gets a named property from an object or any object in its prototype chain.
      * <p>
@@ -2196,6 +2205,7 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
             }
         } else {
             checkNotSealed(name, index);
+            checkExtensible();
             // either const hoisted declaration or initialization
             if (constFlag != EMPTY) {
                 slot = getSlot(name, index, SLOT_MODIFY_CONST);
