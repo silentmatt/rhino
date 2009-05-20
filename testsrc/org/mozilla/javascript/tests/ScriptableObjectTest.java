@@ -170,6 +170,25 @@ public class ScriptableObjectTest {
     assertEquals(true, desc.getWritable());
   }
 
+  @Test(expected = EcmaError.class)
+  public void defineOwnPropertyOnNewPropertyShouldThrowExceptionWhenIsExtensibleIsFalse() {
+    obj.preventExtensions();
+    obj.defineOwnProperty("p", blank);
+  }
+
+  @Test
+  public void defineOwnPropertyOnNewPropertyShouldSucceedWhenExtensibleIsTrue() {
+    assertTrue(obj.isExtensible());
+    obj.defineOwnProperty("p", blank);
+  }
+
+  @Test
+  public void defineOwnPropertyOnExistingPropertyShouldSucceedWhenExtensibleIsFalse() {
+    obj.defineOwnProperty("p", blank);
+    obj.preventExtensions();
+    obj.defineOwnProperty("p", blank);
+  }
+
   private boolean isEnumerable(ScriptableObject obj, String name) {
     int attributes = obj.getAttributes(name);
     return (attributes & ScriptableObject.DONTENUM) == 0;
