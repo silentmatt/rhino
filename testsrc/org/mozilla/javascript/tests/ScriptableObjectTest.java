@@ -129,14 +129,14 @@ public class ScriptableObjectTest {
     obj.defineOwnProperty("p", blank.value(3).configurable(false));
     obj.defineOwnProperty("p", blank.getter(new StubFunction()));
   }
-/*
+
   @Test
   public void defineOwnPropertyShouldAllowChangingWritableFromTrueToFalseWhenConfigurableIsFalse() {
     obj.defineOwnProperty("p", blank.writable(true).configurable(false));
     obj.defineOwnProperty("p", blank.writable(false));
     assertEquals(false, obj.getOwnPropertyDescriptor("p").getWritable());
   }
-*/
+
   @Test
   public void defineOwnPropertyShouldAllowSettingEnumerableToTheSameValueWhenConfigurableIsFalse() {
     obj.defineOwnProperty("p", blank.enumerable(false).configurable(false));
