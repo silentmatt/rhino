@@ -18,7 +18,9 @@ public class Evaluator {
     try {
       Scriptable scope = cx.initStandardObjects();
       for (String id : bindings.keySet()) {
-        scope.put(id, scope, bindings.get(id));
+        Scriptable object = bindings.get(id);
+        object.setParentScope(scope);
+        scope.put(id, scope, object);
       }
       return cx.evaluateString(scope, source, "source", 1, null);
     } finally {

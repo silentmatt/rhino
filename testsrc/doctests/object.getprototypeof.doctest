@@ -1,22 +1,12 @@
+js> load('testsrc/doctests/util.js');
+
 js> Object.getPrototypeOf;
 function getPrototypeOf() { [native code for Object.getPrototypeOf, arity=1] }
 
-js> // FIXME: not sure if this is correct behaviour, should we be expecting a TypeError here instead?
-js> Object.getPrototypeOf() === undefined;
-true
-
-js> var nonObjects = [undefined, null, true, 1, 'hello'];
-js> nonObjects.every(function(value) {
-  >   try {
-  >     Object.getPrototypeOf(value);
-  >     return false;
-  >   } catch (e if e instanceof TypeError) {
-  >     return true;
-  >   } catch (e) {
-  >     return false;
-  >   }
-  > });
-true
+js> expectTypeError(function() { Object.getPrototypeOf() })
+js> [undefined, null, true, 1, 'hello'].forEach(function(value) { 
+  >   expectTypeError(function() { Object.getPrototypeOf(value) }) 
+  > })
 
 js> [(function(){}), [], {}].every(function(obj) {
   >   return Object.getPrototypeOf(obj) === obj.__proto__;

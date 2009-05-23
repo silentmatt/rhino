@@ -1,31 +1,17 @@
+js> load('testsrc/doctests/util.js');
+
 js> Object.isExtensible;
 function isExtensible() { [native code for Object.isExtensible, arity=1] }
-js> Object.isExtensible() === undefined;
-true
-js> [undefined, null, true, 1, "hello"].forEach(function(val) {
-  >   try {
-  >     Object.isExtensible(val);
-  >     print("Object.isExtensible("+val+") should have thrown a TypeError");
-  >   } catch (e if e instanceof TypeError) {
-  >     // this was expected
-  >   } catch (e) {
-  >     print("Object.isExtensible("+val+") should have thrown a TypeError, but instead threw "+e)
-  >   }
+js> expectTypeError(function() { Object.isExtensible() });
+js> [undefined, null, true, 1, 'hello'].forEach(function(value) { 
+  >   expectTypeError(function() { Object.isExtensible(value) }) 
   > })
 
 js> Object.preventExtensions;
 function preventExtensions() { [native code for Object.preventExtensions, arity=1] }
-js> Object.preventExtensions() === undefined;
-true
-js> [undefined, null, true, 1, "hello"].forEach(function(val) {
-  >   try {
-  >     Object.preventExtensions(val);
-  >     print("Object.preventExtensions("+val+") should have thrown a TypeError");
-  >   } catch (e if e instanceof TypeError) {
-  >     // this was expected
-  >   } catch (e) {
-  >     print("Object.preventExtensions("+val+") should have thrown a TypeError, but instead threw "+e)
-  >   }
+js> expectTypeError(function() { Object.preventExtensions() });
+js> [undefined, null, true, 1, 'hello'].forEach(function(value) { 
+  >   expectTypeError(function() { Object.preventExtensions(value) }) 
   > })
 
 js> var x = {};
@@ -37,20 +23,8 @@ true
 js> Object.isExtensible(x);
 false
 
-js> try { 
-  >   x.a = 1; 
-  >   print("'x.a = 1' should have thrown a TypeError as x is not extensible"); 
-  > } catch (e if e instanceof TypeError) {
-  >   // this was expected
-  > } catch (e) {
-  >   print("'x.a = 1' should have thrown a TypeError, but instead threw "+e)
-  > }
-js> try { 
-  >   x.__defineGetter__('a', function() { return 1 })
-  >   print("'x.__defineGetter__('a', function() { return 1 })' should have thrown a TypeError as x is not extensible"); 
-  > } catch (e if e instanceof TypeError) {
-  >   // this was expected
-  > } catch (e) {
-  >   print("'x.__defineGetter__('a', function() { return 1 })' should have thrown a TypeError, but instead threw "+e)
-  > }
+js> x.a = 1; x.a
 js>
+
+js> x.__defineGetter__('b', function() { return 1 }); x.b
+js> 
