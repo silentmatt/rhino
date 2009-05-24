@@ -1485,9 +1485,9 @@ public class Context
      *              against
      * @return the new object
      */
-    public final NativeObject newObject(Scriptable scope)
+    public final Scriptable newObject(Scriptable scope)
     {
-        return (NativeObject) newObject(scope, "Object", ScriptRuntime.emptyArgs);
+        return newObject(scope, "Object", ScriptRuntime.emptyArgs);
     }
 
     /**

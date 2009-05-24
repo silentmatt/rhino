@@ -206,7 +206,7 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
         }
 
         ScriptableObject getPropertyDescriptor(Context cx, Scriptable parent) {
-          ScriptableObject desc = cx.newObject(parent);
+          ScriptableObject desc = (ScriptableObject) cx.newObject(parent);
           if (value != null) desc.defineProperty("value", value, EMPTY);
           desc.defineProperty("writable",     (attributes & READONLY) == 0, EMPTY);
           desc.defineProperty("enumerable",   (attributes & DONTENUM) == 0, EMPTY);
@@ -579,22 +579,6 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
         setGetterOrSetter(name, index, getterOrSetter, isSetter, false);
     }
 
-    /**
-     * Sets the setter for the named property. 
-     * Does not check whether this is allowed, as it is assumed these checks have been done higher up.
-     */
-    private void setSetter(String name, Callable setter) {
-      setGetterOrSetter(name, 0, setter, true, true);
-    }
-
-    /**
-     * Sets the getter for the named property. 
-     * Does not check whether this is allowed, as it is assumed these checks have been done higher up.
-     */
-    private void setGetter(String name, Callable getter) {
-      setGetterOrSetter(name, 0, getter, false, true);
-    }
-    
     private void setGetterOrSetter(String name, int index, Callable getterOrSetter, boolean isSetter, boolean force)
     {
         if (name != null && index != 0)
@@ -1581,8 +1565,9 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
       }
 
       if (isAccessorDescriptor(desc)) {
-        if (desc.has("get", desc)) setGetter(name, (Callable) desc.get("get"));
-        if (desc.has("set", desc)) setSetter(name, (Callable) desc.get("set"));
+        // TODO error check that these guys are functions and throw the approperiate error if not
+        if (desc.has("get", desc)) setGetterOrSetter(name, 0, (Callable) desc.get("get"), false, true);
+        if (desc.has("set", desc)) setGetterOrSetter(name, 0, (Callable) desc.get("set"), true, true);
       } else if (isDataDescriptor(desc)) {
         if (slot == null)
           slot = getSlot(name, 0, SLOT_MODIFY);
@@ -1597,11 +1582,9 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
       int attributes = applyDescriptorToAttributeBitset(DONTENUM|READONLY|PERMANENT, desc);
 
       if (isAccessorDescriptor(desc)) {
-        Object getter = desc.get("get");
-        Object setter = desc.get("set");
         // TODO error check that these guys are functions and throw the approperiate error if not
-        if (getter != null) setGetter(name, (Callable) getter);
-        if (setter != null) setSetter(name, (Callable) setter);
+        if (desc.has("get", desc)) setGetterOrSetter(name, 0, (Callable) desc.get("get"), false, true);
+        if (desc.has("set", desc)) setGetterOrSetter(name, 0, (Callable) desc.get("set"), true, true);
       } else {
 
         if (desc.has("value", desc))
