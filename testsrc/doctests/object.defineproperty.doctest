@@ -35,11 +35,11 @@ js> describe(obj, 'a').toSource()
 ({writable:false, enumerable:false, configurable:false})
 
 js> // when define new property with data descriptor then those values are used for the descriptor
-js> var obj = define({}, 'a', { value: 1, writable: true });
+js> var obj = define({}, 'a', { value: 2, writable: true });
 js> var {value:v, writable:w} = describe(obj, 'a'); [v, w].toSource();
-[1, true]
+[2, true]
 js> obj.a
-1
+2
 
 js> // when define new property with accessor descriptor then those values are used for the descriptor
 js> var obj = define({}, 'a', { get: function() { return 3; }, set: function(value) {} });
@@ -120,31 +120,31 @@ js> var obj = define(obj, 'a', {enumerable:true});
 
 js> // can change from data property to accessor property when configurable is true
 js> var obj = define({},  'a', {value : 1, configurable: true});
-js> var obj = define(obj, 'a', {get   : function() { return 2 }});
+js> var obj = define(obj, 'a', {get   : function() { return 4 }});
 js> obj.a
-2
+4
 js> describe(obj, 'a').toSource()
-({enumerable:false, configurable:true, get:(function () {return 2;})})
+({enumerable:false, configurable:true, get:(function () {return 4;})})
 
 js> // can change from accessor property to data property when configurable is true
 js> var obj = define({},  'a', {get   : function() { return 2 }, configurable:true});
-js> var obj = define(obj, 'a', {value : 1});
+js> var obj = define(obj, 'a', {value : 5});
 js> obj.a
-1
+5
 js> describe(obj, 'a').toSource()
-({value:1, writable:false, enumerable:false, configurable:true})
+({value:5, writable:false, enumerable:false, configurable:true})
 
 js> // can change enumerable and writable to true when configurable is true
 js> var obj = define({},  'a', {writable : false, enumerable : false, configurable:true});
 js> var obj = define(obj, 'a', {writable : true,  enumerable : true, configurable:true});
 
 js> // can change the value if writable is true
-js> var obj = define({},  'a', {value:1, writable:true})
+js> var obj = define({},  'a', {value:6, writable:true})
 js> obj.a
-1
-js> var obj = define(obj, 'a', {value:2})
+6
+js> var obj = define(obj, 'a', {value:7})
 js> obj.a
-2
+7
 
 js> // defining a new property should fail silently when object is not extensible
 js> var obj = Object.preventExtensions({});
@@ -155,12 +155,16 @@ js> // defining new property should succeed when object is extensible
 js> var obj = {}
 js> Object.isExtensible(obj);
 true
-js> obj.a = 1; obj.a
-1
+js> obj.a = 8; obj.a
+8
 
 js> // changing existing property should succeed when object is not extensible
 js> var obj = define({},  'a', {value:1, writable:true});
 js> var obj = Object.preventExtensions(obj);
-js> obj.a = 2; obj.a
-2
+js> obj.a = 9; obj.a
+9
+
+js> // defined getters and setters must be functions
+js> expectTypeError(function() { define({}, 'a', {get:1}); })
+js> expectTypeError(function() { define({}, 'a', {set:1}); })
 

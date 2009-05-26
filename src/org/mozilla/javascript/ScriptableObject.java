@@ -1496,42 +1496,66 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
     }
 
     public void defineOwnProperty(String name, ScriptableObject desc) {
-      if (this.has(name, this)) {
-        redefineOwnProperty(name, desc);
+      Slot slot = getSlot(name, 0, SLOT_QUERY);
+      final int attributes;
+
+      if (slot == null) { // new slot
+        if (!isExtensible()) return;
+        slot = getSlot(name, 0, SLOT_MODIFY);
+        attributes = applyDescriptorToAttributeBitset(DONTENUM|READONLY|PERMANENT, desc);
       } else {
-        defineOwnNewProperty(name, desc);
+        checkLegalPropertyRedefinition(name, desc);
+        attributes = applyDescriptorToAttributeBitset(getAttributes(name), desc);
+      }
+
+      defineOwnProperty(slot, desc, attributes);
+    }
+
+    private void defineOwnProperty(Slot slot, ScriptableObject desc, int attributes) {
+      if (isAccessorDescriptor(desc)) {
+        if ( !(slot instanceof GetterSlot) ) 
+          slot = getSlot(slot.name, 0, SLOT_MODIFY_GETTER_SETTER);
+
+        Object getter = desc.get("get");
+        Object setter = desc.get("set");
+
+        if (getter != null && !(getter instanceof Callable) ) {
+          throw ScriptRuntime.notFunctionError(getter);
+        }
+        if (setter != null && !(setter instanceof Callable) ) {
+          throw ScriptRuntime.notFunctionError(setter);
+        }
+
+        defineOwnAccessorProperty( (GetterSlot) slot, (Callable) getter, (Callable) setter, attributes);
+      } else  {
+        if (slot instanceof GetterSlot && isDataDescriptor(desc)) {
+          slot = getSlot(slot.name, 0, SLOT_CONVERT_ACCESSOR_TO_DATA);
+        }
+        defineOwnDataProperty(slot, desc.get("value"), attributes);
       }
     }
 
-    private int applyDescriptorToAttributeBitset(int attributes, ScriptableObject desc) {
-      Boolean enumerable = (Boolean) desc.get("enumerable");
-      if (enumerable != null) attributes = (enumerable ? attributes & ~DONTENUM : attributes | DONTENUM);
-
-      Boolean writable = (Boolean) desc.get("writable");
-      if (writable != null) attributes = (writable ? attributes & ~READONLY : attributes | READONLY);
-
-      Boolean configurable = (Boolean) desc.get("configurable");
-      if (configurable != null) attributes = (configurable ? attributes & ~PERMANENT : attributes | PERMANENT);
-
-      return attributes;
+    private void defineOwnDataProperty(Slot slot, Object value, int attributes) {
+      if (value != null) {
+        slot.value = value;
+      }
+      slot.setAttributes(attributes);
     }
 
-    private boolean isDataDescriptor(ScriptableObject desc) {
-      return desc.has("value", desc) || desc.has("writable", desc);
-    }
-    private boolean isAccessorDescriptor(ScriptableObject desc) {
-      return desc.has("get", desc) || desc.has("set", desc);
-    }
-    private boolean isGenericDescriptor(ScriptableObject desc) {
-      return !isDataDescriptor(desc) && !isAccessorDescriptor(desc);
+    private void defineOwnAccessorProperty(GetterSlot slot, Callable getter, Callable setter, int attributes) {
+      if (getter != null) {
+        slot.getter = getter;
+      } if (setter != null) {
+        slot.setter = setter;
+      }
+      slot.value = Undefined.instance;
+      slot.setAttributes(attributes);
     }
 
-    private void redefineOwnProperty(String name, ScriptableObject desc) {
+    private void checkLegalPropertyRedefinition(String name, ScriptableObject desc) {
       ScriptableObject current = getOwnPropertyDescriptor(Context.getContext(), name);
-      int attributes = applyDescriptorToAttributeBitset(getAttributes(name), desc);
-      Slot slot = null;
-
       if (Boolean.FALSE.equals(current.get("configurable"))) {
+
         if (Boolean.TRUE.equals(desc.get("configurable"))) 
           throw ScriptRuntime.typeError1("msg.change.configurable.false.to.true", name);
         if (desc.has("enumerable", desc) && !current.get("enumerable").equals(desc.get("enumerable")))
@@ -1556,41 +1580,30 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
         } else {
           throw ScriptRuntime.typeError1("msg.change.descriptor.type.with.configurable.false", name);
         }
-      } else {
-        if (isDataDescriptor(desc)) {
-          if (isAccessorDescriptor(current)) {
-            slot = getSlot(name, 0, SLOT_CONVERT_ACCESSOR_TO_DATA);
-          }
-        }
       }
-
-      if (isAccessorDescriptor(desc)) {
-        // TODO error check that these guys are functions and throw the approperiate error if not
-        if (desc.has("get", desc)) setGetterOrSetter(name, 0, (Callable) desc.get("get"), false, true);
-        if (desc.has("set", desc)) setGetterOrSetter(name, 0, (Callable) desc.get("set"), true, true);
-      } else if (isDataDescriptor(desc)) {
-        if (slot == null)
-          slot = getSlot(name, 0, SLOT_MODIFY);
-        if (desc.has("value", desc))
-          slot.value = desc.get("value");
-      }
-      setAttributes(name, attributes);
     }
 
-    private void defineOwnNewProperty(String name, ScriptableObject desc) {
-      if (!isExtensible()) return;
-      int attributes = applyDescriptorToAttributeBitset(DONTENUM|READONLY|PERMANENT, desc);
+    private int applyDescriptorToAttributeBitset(int attributes, ScriptableObject desc) {
+      Boolean enumerable = (Boolean) desc.get("enumerable");
+      if (enumerable != null) attributes = (enumerable ? attributes & ~DONTENUM : attributes | DONTENUM);
 
-      if (isAccessorDescriptor(desc)) {
-        // TODO error check that these guys are functions and throw the approperiate error if not
-        if (desc.has("get", desc)) setGetterOrSetter(name, 0, (Callable) desc.get("get"), false, true);
-        if (desc.has("set", desc)) setGetterOrSetter(name, 0, (Callable) desc.get("set"), true, true);
-      } else {
+      Boolean writable = (Boolean) desc.get("writable");
+      if (writable != null) attributes = (writable ? attributes & ~READONLY : attributes | READONLY);
 
-        if (desc.has("value", desc))
-          put(name, this, desc.get("value"));
-      }
-      setAttributes(name, attributes);
+      Boolean configurable = (Boolean) desc.get("configurable");
+      if (configurable != null) attributes = (configurable ? attributes & ~PERMANENT : attributes | PERMANENT);
+
+      return attributes;
+    }
+
+    private boolean isDataDescriptor(ScriptableObject desc) {
+      return desc.has("value", desc) || desc.has("writable", desc);
+    }
+    private boolean isAccessorDescriptor(ScriptableObject desc) {
+      return desc.has("get", desc) || desc.has("set", desc);
+    }
+    private boolean isGenericDescriptor(ScriptableObject desc) {
+      return !isDataDescriptor(desc) && !isAccessorDescriptor(desc);
     }
 
     /**
@@ -2461,15 +2474,15 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
                             lastAccess = REMOVED;
                         }
                         return newSlot;
-                    }
-
-                    // Check if the table is not too full before inserting.
-                    if (4 * (count + 1) > 3 * slotsLocalRef.length) {
-                        slotsLocalRef = new Slot[slotsLocalRef.length * 2 + 1];
-                        copyTable(slots, slotsLocalRef, count);
-                        slots = slotsLocalRef;
-                        insertPos = getSlotIndex(slotsLocalRef.length,
-                                indexOrHash);
+                    } else {
+                      // Check if the table is not too full before inserting.
+                      if (4 * (count + 1) > 3 * slotsLocalRef.length) {
+                          slotsLocalRef = new Slot[slotsLocalRef.length * 2 + 1];
+                          copyTable(slots, slotsLocalRef, count);
+                          slots = slotsLocalRef;
+                          insertPos = getSlotIndex(slotsLocalRef.length,
+                                  indexOrHash);
+                      }
                     }
                 }
                 Slot newSlot = (accessType == SLOT_MODIFY_GETTER_SETTER
