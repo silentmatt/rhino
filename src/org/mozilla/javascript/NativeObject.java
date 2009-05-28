@@ -278,111 +278,94 @@ public class NativeObject extends IdScriptableObject
 
           case ConstructorId_getPrototypeOf:
               {
-                if (args.length < 1)
-                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(Undefined.instance));
-
-                Object arg = args[0];
-
-                if ( !(arg instanceof Scriptable) )
-                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(arg));
-
+                Object arg = args.length < 1 ? Undefined.instance : args[0];
+                if (!(arg instanceof Scriptable)) {
+                    throw ScriptRuntime.typeError1("msg.arg.not.object",
+                                                   ScriptRuntime.typeof(arg));
+                }
                 Scriptable obj = (Scriptable) arg;
                 return obj.getPrototype();
               }
           case ConstructorId_keys:
               {
-                if (args.length < 1)
-                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(Undefined.instance));
-
-                Object arg = args[0];
-
-                if ( !(arg instanceof Scriptable) )
-                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(arg));
-
+                Object arg = args.length < 1 ? Undefined.instance : args[0];
+                if (!(arg instanceof Scriptable)) {
+                    throw ScriptRuntime.typeError1("msg.arg.not.object",
+                                                   ScriptRuntime.typeof(arg));
+                }
                 Object[] ids = ((Scriptable) arg).getIds();
-                for (int i = 0; i < ids.length; i += 1) {
+                for (int i = 0; i < ids.length; i++) {
                   ids[i] = ScriptRuntime.toString(ids[i]);
                 }
                 return cx.newArray(scope, ids);
               }
           case ConstructorId_getOwnPropertyNames:
               {
-                if (args.length < 1)
-                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(Undefined.instance));
-
-                Object arg = args[0];
-
-                if ( !(arg instanceof ScriptableObject) )
-                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(arg));
-
+                Object arg = args.length < 1 ? Undefined.instance : args[0];
+                if (!(arg instanceof Scriptable)) {
+                    throw ScriptRuntime.typeError1("msg.arg.not.object",
+                                                   ScriptRuntime.typeof(arg));
+                }
                 Object[] ids = ((ScriptableObject) arg).getAllIds();
-                for (int i = 0; i < ids.length; i += 1) {
+                for (int i = 0; i < ids.length; i++) {
                   ids[i] = ScriptRuntime.toString(ids[i]);
                 }
                 return cx.newArray(scope, ids);
               }
           case ConstructorId_getOwnPropertyDescriptor:
               {
-                if (args.length < 2)
-                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(Undefined.instance));
-
-                Object arg = args[0];
-                if ( !(arg instanceof ScriptableObject) )
-                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(arg));
+                Object arg = args.length < 1 ? Undefined.instance : args[0];
+                if (!(arg instanceof ScriptableObject)) {
+                    // TODO(norris): There's a deeper issue here if
+                    // arg instanceof Scriptable. Should we create a new
+                    // interface to admit the new ECMAScript 5 operations?
+                    throw ScriptRuntime.typeError1("msg.arg.not.object",
+                                                   ScriptRuntime.typeof(arg));
+                }
                 ScriptableObject obj = (ScriptableObject) arg;
-                String name = ScriptRuntime.toString(args[1]);
-
+                Object nameArg = args.length < 2 ? Undefined.instance : args[1];
+                String name = ScriptRuntime.toString(nameArg);
                 Scriptable desc = obj.getOwnPropertyDescriptor(cx, name);
                 return desc == null ? Undefined.instance : desc;
               }
           case ConstructorId_defineProperty:
               {
-                if (args.length < 3)
-                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(Undefined.instance));
-
-                Object arg0 = args[0];
-                if ( !(arg0 instanceof ScriptableObject) )
-                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(arg0));
-
-                ScriptableObject obj = (ScriptableObject) arg0;
-                String name = ScriptRuntime.toString(args[1]);
-
-                Object arg2 = args[2];
-                if ( !(arg2 instanceof ScriptableObject) )
-                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(arg2));
-
-                ScriptableObject desc = (ScriptableObject) arg2;
-
+                Object arg = args.length < 1 ? Undefined.instance : args[0];
+                if (!(arg instanceof ScriptableObject)) {
+                    throw ScriptRuntime.typeError1("msg.arg.not.object",
+                                                   ScriptRuntime.typeof(arg));
+                }
+                ScriptableObject obj = (ScriptableObject) arg;
+                Object nameArg = args.length < 2 ? Undefined.instance : args[1];
+                String name = ScriptRuntime.toString(nameArg);
+                Object descArg = args.length < 3 ? Undefined.instance : args[2];
+                if (!(descArg instanceof ScriptableObject)) {
+                    throw ScriptRuntime.typeError1("msg.arg.not.object",
+                                                   ScriptRuntime.typeof(descArg));
+                }
+                ScriptableObject desc = (ScriptableObject) descArg;
                 obj.defineOwnProperty(name, desc);
-
                 return obj;
               }
           case ConstructorId_isExtensible:
               {
-                if (args.length < 1)
-                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(Undefined.instance));
-
-                Object arg0 = args[0];
-                if ( !(arg0 instanceof ScriptableObject) )
-                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(arg0));
-
-                ScriptableObject obj = (ScriptableObject) arg0;
-
+                Object arg = args.length < 1 ? Undefined.instance : args[0];
+                if (!(arg instanceof ScriptableObject)) {
+                    throw ScriptRuntime.typeError1("msg.arg.not.object",
+                                                   ScriptRuntime.typeof(arg));
+                }
+                ScriptableObject obj = (ScriptableObject) arg;
                 return obj.isExtensible();
               }
           case ConstructorId_preventExtensions:
               {
-                if (args.length < 1)
-                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(Undefined.instance));
-
-                Object arg0 = args[0];
-                if ( !(arg0 instanceof ScriptableObject) )
-                    throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(arg0));
-
-                ScriptableObject obj = (ScriptableObject) arg0;
-
+                Object arg = args.length < 1 ? Undefined.instance : args[0];
+                if (!(arg instanceof ScriptableObject)) {
+                    throw ScriptRuntime.typeError1("msg.arg.not.object",
+                                                   ScriptRuntime.typeof(arg));
+                }
+                ScriptableObject obj = (ScriptableObject) arg;
                 obj.preventExtensions();
-
                 return obj;
               }
 

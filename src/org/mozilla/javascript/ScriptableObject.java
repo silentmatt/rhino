@@ -205,13 +205,14 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
             }
         }
 
-        ScriptableObject getPropertyDescriptor(Context cx, Scriptable parent) {
-          ScriptableObject desc = (ScriptableObject) cx.newObject(parent);
-          if (value != null) desc.defineProperty("value", value, EMPTY);
-          desc.defineProperty("writable",     (attributes & READONLY) == 0, EMPTY);
-          desc.defineProperty("enumerable",   (attributes & DONTENUM) == 0, EMPTY);
-          desc.defineProperty("configurable", (attributes & PERMANENT) == 0, EMPTY);
-          return desc;
+        ScriptableObject getPropertyDescriptor(Context cx, Scriptable scope) {
+            ScriptableObject desc = new NativeObject();
+            ScriptRuntime.setObjectProtoAndParent(desc, scope);
+            if (value != null) desc.defineProperty("value", value, EMPTY);
+            desc.defineProperty("writable",     (attributes & READONLY) == 0, EMPTY);
+            desc.defineProperty("enumerable",   (attributes & DONTENUM) == 0, EMPTY);
+            desc.defineProperty("configurable", (attributes & PERMANENT) == 0, EMPTY);
+            return desc;
         }
 
     }
