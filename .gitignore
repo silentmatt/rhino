@@ -5,3 +5,4 @@ downloaded
 .cvsignore
 CVS
 .*.swp
+.tags
