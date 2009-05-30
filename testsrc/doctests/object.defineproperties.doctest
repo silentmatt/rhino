@@ -31,3 +31,9 @@ js> expectTypeError(function() { Object.defineProperties({}, {a: null}) })
 js> expectTypeError(function() { Object.defineProperties({}, {a: 1}) })
 js> expectTypeError(function() { Object.defineProperties({}, {a: {get: 1}}) })
 
+js> var obj = {a:1}
+js> expectTypeError(function() { 
+  >   obj = Object.defineProperties(obj, {b: {value:1}, c:1});
+  > });
+js> obj.b
+js>
