@@ -351,7 +351,6 @@ public class NativeObject extends IdScriptableObject
                 obj.defineOwnProperties(ensureScriptableObject(props));
                 return obj;
               }
-              }
 
           default:
             throw new IllegalArgumentException(String.valueOf(id));
