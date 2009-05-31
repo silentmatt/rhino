@@ -346,38 +346,16 @@ public class NativeObject extends IdScriptableObject
               {
                 Object arg = args.length < 1 ? Undefined.instance : args[0];
                 ScriptableObject obj = ensureScriptableObject(arg);
-
                 Object propsObj = args.length < 2 ? Undefined.instance : args[1];
                 Scriptable props = Context.toObject(propsObj, getParentScope());
-
-                Map<String, ScriptableObject> descriptors = new LinkedHashMap();
-
-                for (Object p : props.getIds()) {
-                  String name = ScriptRuntime.toString(p);
-                  Object descObj = props.get(name, props);
-                  ScriptableObject desc = ensureScriptableObject(descObj);
-                  descriptors.put(name, desc);
-                }
-
-                obj.defineOwnProperties(descriptors);
-
+                obj.defineOwnProperties(ensureScriptableObject(props));
                 return obj;
+              }
               }
 
           default:
             throw new IllegalArgumentException(String.valueOf(id));
         }
-    }
-
-    private Scriptable ensureScriptable(Object arg) {
-      if ( !(arg instanceof Scriptable) )
-        throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(arg));
-      return (Scriptable) arg;
-    }
-    private ScriptableObject ensureScriptableObject(Object arg) {
-      if ( !(arg instanceof ScriptableObject) )
-        throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(arg));
-      return (ScriptableObject) arg;
     }
 
 // #string_id_map#

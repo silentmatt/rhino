@@ -1496,12 +1496,17 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
         gslot.setter = setterBox;
     }
 
-    public void defineOwnProperties(Map<String, ScriptableObject> descriptors) {
-        for (String name : descriptors.keySet()) {
-            checkLegalPropertyDefinition(getSlot(name, 0, SLOT_QUERY), descriptors.get(name));
+    public void defineOwnProperties(ScriptableObject props) {
+        Object[] ids = props.getIds();
+        for (Object id : ids) {
+            String name = ScriptRuntime.toString(id);
+            Object descObj = props.get(id);
+            ScriptableObject desc = ensureScriptableObject(descObj);
+            checkLegalPropertyDefinition(getSlot(name, 0, SLOT_QUERY), desc);
         }
-        for (String name : descriptors.keySet()) {
-            ScriptableObject desc = descriptors.get(name);
+        for (Object id : ids) {
+            String name = ScriptRuntime.toString(id);
+            ScriptableObject desc = (ScriptableObject) props.get(id);
             defineOwnProperty(name, desc);
         }
     }
@@ -1622,6 +1627,18 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
     private boolean isGenericDescriptor(ScriptableObject desc) {
       return !isDataDescriptor(desc) && !isAccessorDescriptor(desc);
     }
+
+    protected Scriptable ensureScriptable(Object arg) {
+      if ( !(arg instanceof Scriptable) )
+        throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(arg));
+      return (Scriptable) arg;
+    }
+    protected ScriptableObject ensureScriptableObject(Object arg) {
+      if ( !(arg instanceof ScriptableObject) )
+        throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(arg));
+      return (ScriptableObject) arg;
+    }
+
 
     /**
      * Search for names in a class, adding the resulting methods
