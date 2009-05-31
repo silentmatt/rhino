@@ -146,10 +146,9 @@ js> var obj = define(obj, 'a', {value:7})
 js> obj.a
 7
 
-js> // defining a new property should fail silently when object is not extensible
+js> // defining a new property should fail loudly when object is not extensible
 js> var obj = Object.preventExtensions({});
-js> define(obj, 'a', {value:1}).a === undefined
-true
+js> expectTypeError(function() { define(obj, 'a', {value:1}) })
 
 js> // defining new property should succeed when object is extensible
 js> var obj = {}
