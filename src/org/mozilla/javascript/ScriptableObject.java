@@ -1501,7 +1501,7 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
       final int attributes;
 
       if (slot == null) { // new slot
-        if (!isExtensible()) return;
+        if (!isExtensible()) throw ScriptRuntime.typeError("msg.not.extensible");
         slot = getSlot(name, 0, SLOT_MODIFY);
         attributes = applyDescriptorToAttributeBitset(DONTENUM|READONLY|PERMANENT, desc);
       } else {
