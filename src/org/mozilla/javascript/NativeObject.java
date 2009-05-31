@@ -40,6 +40,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 package org.mozilla.javascript;
+import java.util.Map;
+import java.util.LinkedHashMap;
 
 /**
  * This class implements the Object native object.
@@ -348,12 +350,16 @@ public class NativeObject extends IdScriptableObject
                 Object propsObj = args.length < 2 ? Undefined.instance : args[1];
                 Scriptable props = Context.toObject(propsObj, getParentScope());
 
+                Map<String, ScriptableObject> descriptors = new LinkedHashMap();
+
                 for (Object p : props.getIds()) {
                   String name = ScriptRuntime.toString(p);
                   Object descObj = props.get(name, props);
                   ScriptableObject desc = ensureScriptableObject(descObj);
-                  obj.defineOwnProperty(name, desc);
+                  descriptors.put(name, desc);
                 }
+
+                obj.defineOwnProperties(descriptors);
 
                 return obj;
               }
