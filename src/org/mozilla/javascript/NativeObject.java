@@ -91,6 +91,8 @@ public class NativeObject extends IdScriptableObject
                 "preventExtensions", 1);
         addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_defineProperties,
                 "defineProperties", 2);
+        addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_create,
+                "create", 2);
         super.fillConstructorProperties(ctor);
     }
 
@@ -346,38 +348,32 @@ public class NativeObject extends IdScriptableObject
               {
                 Object arg = args.length < 1 ? Undefined.instance : args[0];
                 ScriptableObject obj = ensureScriptableObject(arg);
-
                 Object propsObj = args.length < 2 ? Undefined.instance : args[1];
                 Scriptable props = Context.toObject(propsObj, getParentScope());
+                obj.defineOwnProperties(ensureScriptableObject(props));
+                return obj;
+              }
+          case ConstructorId_create:
+              {
+                Object arg = args.length < 1 ? Undefined.instance : args[0];
+                Scriptable obj = ensureScriptable(arg);
+                Object propsObj = args.length < 2 ? Undefined.instance : args[1];
 
-                Map<String, ScriptableObject> descriptors = new LinkedHashMap();
+                ScriptableObject newObject = new NativeObject();
+                newObject.setParentScope(this.getParentScope());
+                newObject.setPrototype(obj);
 
-                for (Object p : props.getIds()) {
-                  String name = ScriptRuntime.toString(p);
-                  Object descObj = props.get(name, props);
-                  ScriptableObject desc = ensureScriptableObject(descObj);
-                  descriptors.put(name, desc);
+                if (propsObj != Undefined.instance) {
+                    Scriptable props = Context.toObject(propsObj, getParentScope());
+                    newObject.defineOwnProperties(ensureScriptableObject(props));
                 }
 
-                obj.defineOwnProperties(descriptors);
-
-                return obj;
+                return newObject;
               }
 
           default:
             throw new IllegalArgumentException(String.valueOf(id));
         }
-    }
-
-    private Scriptable ensureScriptable(Object arg) {
-      if ( !(arg instanceof Scriptable) )
-        throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(arg));
-      return (Scriptable) arg;
-    }
-    private ScriptableObject ensureScriptableObject(Object arg) {
-      if ( !(arg instanceof ScriptableObject) )
-        throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(arg));
-      return (ScriptableObject) arg;
     }
 
 // #string_id_map#
@@ -430,6 +426,7 @@ public class NativeObject extends IdScriptableObject
         ConstructorId_isExtensible = -6,
         ConstructorId_preventExtensions = -7,
         ConstructorId_defineProperties= -8,
+        ConstructorId_create = -9,
 
         Id_constructor           = 1,
         Id_toString              = 2,
