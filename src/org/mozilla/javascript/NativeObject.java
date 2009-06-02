@@ -349,6 +349,7 @@ public class NativeObject extends IdScriptableObject
         throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(arg));
       return (Scriptable) arg;
     }
+
     private ScriptableObject ensureScriptableObject(Object arg) {
       if ( !(arg instanceof ScriptableObject) )
         throw ScriptRuntime.typeError1("msg.arg.not.object", ScriptRuntime.typeof(arg));
