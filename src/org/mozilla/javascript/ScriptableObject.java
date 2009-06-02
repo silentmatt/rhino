@@ -2747,7 +2747,8 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
 
     protected ScriptableObject getOwnPropertyDescriptor(Context cx, String name) {
       Slot slot = getSlot(name, 0, SLOT_QUERY);
-      return (slot == null) ? null : slot.getPropertyDescriptor(cx, getParentScope());
+      Scriptable scope = getParentScope();
+      return (slot == null) ? null : slot.getPropertyDescriptor(cx, (scope == null ? this : scope));
     }
 
     // Methods and classes to implement java.util.Map interface
