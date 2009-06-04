@@ -1624,19 +1624,19 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
     }
 
     private int applyDescriptorToAttributeBitset(int attributes, ScriptableObject desc) {
-      if (hasProperty(desc, "enumerable")) {
-        boolean enumerable = ScriptRuntime.toBoolean(getProperty(desc, "enumerable"));
-        attributes = (enumerable ? attributes & ~DONTENUM : attributes | DONTENUM);
+      Object enumerable = tryBoolean(getProperty(desc, "enumerable"));
+      if (enumerable != NOT_FOUND) {
+        attributes = ((Boolean) enumerable ? attributes & ~DONTENUM : attributes | DONTENUM);
       }
 
-      if (hasProperty(desc, "writable")) {
-        boolean writable = ScriptRuntime.toBoolean(getProperty(desc, "writable"));
-        attributes = (writable ? attributes & ~READONLY : attributes | READONLY);
+      Object writable = tryBoolean(getProperty(desc, "writable"));
+      if (writable != NOT_FOUND) {
+        attributes = ((Boolean) writable ? attributes & ~READONLY : attributes | READONLY);
       }
 
-      if (hasProperty(desc, "configurable")) {
-        boolean configurable = ScriptRuntime.toBoolean(getProperty(desc, "configurable"));
-        attributes = (configurable ? attributes & ~PERMANENT : attributes | PERMANENT);
+      Object configurable = tryBoolean(getProperty(desc, "configurable"));
+      if (configurable != NOT_FOUND) {
+        attributes = ((Boolean) configurable ? attributes & ~PERMANENT : attributes | PERMANENT);
       }
 
       return attributes;
