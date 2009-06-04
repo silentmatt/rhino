@@ -1527,16 +1527,16 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
 
         GetterSlot gslot = (GetterSlot) slot;
 
-        if (hasProperty(desc, "get")) {
-          Object getter = getProperty(desc, "get");
+        Object getter = getProperty(desc, "get");
+        if (getter != NOT_FOUND) {
           if ( !(getter instanceof Callable) ) {
             throw ScriptRuntime.notFunctionError(getter);
           } else {
             gslot.getter = getter;
           }
         }
-        if (hasProperty(desc, "set")) {
-          Object setter = getProperty(desc, "set");
+        Object setter = getProperty(desc, "set");
+        if (setter != NOT_FOUND) {
           if ( !(setter instanceof Callable) ) {
             throw ScriptRuntime.notFunctionError(setter);
           } else {
@@ -1551,44 +1551,55 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
           slot = getSlot(slot.name, 0, SLOT_CONVERT_ACCESSOR_TO_DATA);
         }
 
-        if (hasProperty(desc, "value")) {
-          slot.value = getProperty(desc, "value");
+        Object value = getProperty(desc, "value");
+        if (value != NOT_FOUND) {
+          slot.value = value;
         }
         slot.setAttributes(attributes);
       }
     }
 
-
-
-
     private void checkLegalPropertyRedefinition(String name, ScriptableObject desc) {
       ScriptableObject current = getOwnPropertyDescriptor(Context.getContext(), name);
-      if (Boolean.FALSE.equals(getProperty(current, "configurable"))) {
-        if (hasProperty(desc, "configurable") && ScriptRuntime.toBoolean(getProperty(desc, "configurable")))
+      if (Boolean.FALSE.equals(current.get("configurable")) ) {
+        if (Boolean.TRUE.equals(tryBoolean(getProperty(desc, "configurable")))) 
           throw ScriptRuntime.typeError1("msg.change.configurable.false.to.true", name);
-        if (hasProperty(desc, "enumerable") && !getProperty(current, "enumerable").equals(ScriptRuntime.toBoolean(getProperty(desc, "enumerable"))))
+        if (changes(current.get("enumerable"), tryBoolean(getProperty(desc, "enumerable"))))
           throw ScriptRuntime.typeError1("msg.change.enumerable.with.configurable.false", name);
 
         if (isGenericDescriptor(desc)) {
           // no further validation required
         } else if (isDataDescriptor(desc) && isDataDescriptor(current)) {
-          if (Boolean.FALSE.equals(getProperty(current, "writable"))) {
-            if (hasProperty(desc, "writable") && ScriptRuntime.toBoolean(getProperty(desc, "writable")))
+          if (Boolean.FALSE.equals(current.get("writable"))) {
+            if (Boolean.TRUE.equals(tryBoolean(getProperty(desc, "writable"))))
               throw ScriptRuntime.typeError1("msg.change.writable.false.to.true.with.configurable.false", name);
 
-            if (hasProperty(desc, "value") && !ScriptRuntime.shallowEq(getProperty(current, "value"), getProperty(desc, "value"))) 
+            if (changes(current.get("value"), getProperty(desc, "value")))
               throw ScriptRuntime.typeError1("msg.change.value.with.writable.false", name);
           }
         } else if (isAccessorDescriptor(desc) && isAccessorDescriptor(current)) {
-          if (hasProperty(desc, "set") && !ScriptRuntime.shallowEq(getProperty(current, "set"), getProperty(desc, "set")))
+          if (changes(current.get("set"), getProperty(desc, "set")))
             throw ScriptRuntime.typeError1("msg.change.setter.with.configurable.false", name);
 
-          if (hasProperty(desc, "get") && !ScriptRuntime.shallowEq(getProperty(current, "get"), getProperty(desc, "get"))) 
+          if (changes(current.get("get"), getProperty(desc, "get"))) 
             throw ScriptRuntime.typeError1("msg.change.getter.with.configurable.false", name);
         } else {
-          throw ScriptRuntime.typeError1("msg.change.descriptor.type.with.configurable.false", name);
+          if (isDataDescriptor(current))
+            throw ScriptRuntime.typeError1("msg.change.property.data.to.accessor.with.configurable.false", name);
+          else
+            throw ScriptRuntime.typeError1("msg.change.property.accessor.to.data.with.configurable.false", name);
         }
       }
+    }
+
+    private static Object tryBoolean(Object value) {
+      if (value == NOT_FOUND) return NOT_FOUND;
+      return ScriptRuntime.toBoolean(value);
+    }
+
+    private boolean changes(Object currentValue, Object newValue) {
+      return (newValue != NOT_FOUND) && 
+        (currentValue == NOT_FOUND || ! ScriptRuntime.shallowEq(currentValue, newValue));
     }
 
     private int applyDescriptorToAttributeBitset(int attributes, ScriptableObject desc) {
