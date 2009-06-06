@@ -1502,12 +1502,12 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
             String name = ScriptRuntime.toString(id);
             Object descObj = props.get(id);
             ScriptableObject desc = ensureScriptableObject(descObj);
-            checkLegalPropertyDefinition(getSlot(name, 0, SLOT_QUERY), desc);
+            checkValidPropertyDefinition(getSlot(name, 0, SLOT_QUERY), desc);
         }
         for (Object id : ids) {
             String name = ScriptRuntime.toString(id);
             ScriptableObject desc = (ScriptableObject) props.get(id);
-            defineOwnProperty(name, desc);
+            defineOwnProperty(name, desc, false);
         }
     }
 
@@ -1520,10 +1520,15 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
      * @param desc the new property descriptor, as described in 8.6.1
      */
     public void defineOwnProperty(String name, ScriptableObject desc) {
+      defineOwnProperty(name, desc, true);
+    }
+
+    private void defineOwnProperty(String name, ScriptableObject desc, boolean checkValid) {
       Slot slot = getSlot(name, 0, SLOT_QUERY);
       final int attributes;
 
-      checkLegalPropertyDefinition(slot, desc);
+      if (checkValid)
+        checkValidPropertyDefinition(slot, desc);
       
       if (slot == null) { // new slot
         slot = getSlot(name, 0, SLOT_MODIFY);
@@ -1566,7 +1571,7 @@ public abstract class ScriptableObject implements Scriptable, Serializable,
       }
     }
 
-    private void checkLegalPropertyDefinition(Slot slot, ScriptableObject desc) {
+    private void checkValidPropertyDefinition(Slot slot, ScriptableObject desc) {
       Object getter = getProperty(desc, "get");
       if (getter != NOT_FOUND && !(getter instanceof Callable) ) {
         throw ScriptRuntime.notFunctionError(getter);
