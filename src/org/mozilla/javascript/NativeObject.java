@@ -93,6 +93,8 @@ public class NativeObject extends IdScriptableObject
                 "defineProperties", 2);
         addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_create,
                 "create", 2);
+        addIdFunctionProperty(ctor, OBJECT_TAG, ConstructorId_isSealed,
+                "isSealed", 1);
         super.fillConstructorProperties(ctor);
     }
 
@@ -370,6 +372,20 @@ public class NativeObject extends IdScriptableObject
 
                 return newObject;
               }
+          case ConstructorId_isSealed:
+              {
+                Object arg = args.length < 1 ? Undefined.instance : args[0];
+                ScriptableObject obj = ensureScriptableObject(arg);
+
+                for (Object propertyId : obj.getAllIds()) {
+                  String name = ScriptRuntime.toString(propertyId);
+                  Object configurable = obj.getOwnPropertyDescriptor(cx, name).get("configurable");
+                  if (Boolean.TRUE.equals(configurable)) 
+                    return false;
+                }
+
+                return !obj.isExtensible();
+              }
 
           default:
             throw new IllegalArgumentException(String.valueOf(id));
@@ -427,6 +443,7 @@ public class NativeObject extends IdScriptableObject
         ConstructorId_preventExtensions = -7,
         ConstructorId_defineProperties= -8,
         ConstructorId_create = -9,
+        ConstructorId_isSealed = -10,
 
         Id_constructor           = 1,
         Id_toString              = 2,
