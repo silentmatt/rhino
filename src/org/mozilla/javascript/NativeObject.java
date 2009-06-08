@@ -417,7 +417,7 @@ public class NativeObject extends IdScriptableObject
                   String name = ScriptRuntime.toString(propertyId);
                   ScriptableObject desc = obj.getOwnPropertyDescriptor(cx, name);
                   if (Boolean.TRUE.equals(desc.get("configurable"))) {
-                    desc.put("configurable", desc, Boolean.valueOf(false));
+                    desc.put("configurable", desc, false);
                     obj.defineOwnProperty(name, desc); 
                   }
                 }
