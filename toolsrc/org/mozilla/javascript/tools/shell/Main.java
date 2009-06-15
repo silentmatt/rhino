@@ -306,6 +306,14 @@ public class Main
                 fileList.add(args[i].equals("-") ? null : args[i]);
                 continue;
             }
+            if (arg.equals("-lib")) {
+                if (++i == args.length) {
+                    usageError = arg;
+                    break goodUsage;
+                }
+                fileList.add(args[i]);
+                continue;
+            }
             if (arg.equals("-sealedlib")) {
                 global.setSealedStdLib(true);
                 continue;
